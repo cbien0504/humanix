@@ -1,0 +1,29 @@
+# Build output
+target/
+*.class
+*.war
+
+# Maven wrapper binary (downloaded on demand)
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & runtime output
+logs/
+*.log
+import-reports/
+
+# Secrets – never commit real credentials (use .env.example as template)
+.env
+*.local.properties
