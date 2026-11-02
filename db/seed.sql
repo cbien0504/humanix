@@ -1,7 +1,7 @@
 /* =============================================================================
    HRM System – sample data
-   Run after schema.sql, functions.sql, triggers.sql (see db/init-db.sh).
-   * 6 departments, 13 positions, 36 employees, 33 user accounts
+   Run after schema, functions, views, procedures and triggers (see db/init-db.sh).
+   * 6 departments, 13 positions, 36 employees, 33 user accounts, 3 payroll months
    * Attendance is generated for every working day from 2026-08-01 to yesterday
      with a deterministic pseudo-random distribution (same input → same data).
    * All demo accounts use the password  Demo@123  (BCrypt cost 10).
@@ -190,27 +190,9 @@ INSERT INTO dbo.TaxBrackets (BracketNo, LowerBound, UpperBound, Rate) VALUES
 GO
 
 /* -----------------------------------------------------------------------------
-   5. Annual leave balances for 2026 (BR-23: 12 days + 1 per 5 full years of
-      service at 1 Jan; new joiners pro-rated by month, month counts if the
-      hire day is <= 15, fraction >= 0.5 rounds up)
+   5. Annual leave balances for 2026 – rule BR-23 lives in sp_InitLeaveBalances
    ----------------------------------------------------------------------------- */
-DECLARE @Year SMALLINT = 2026;
-DECLARE @YearStart DATE = DATEFROMPARTS(@Year, 1, 1), @YearEnd DATE = DATEFROMPARTS(@Year, 12, 31);
-
-INSERT INTO dbo.LeaveBalances (EmployeeId, LeaveTypeId, BalanceYear, EntitledDays)
-SELECT e.EmployeeId, lt.LeaveTypeId, @Year,
-       CASE WHEN e.HireDate < @YearStart
-            THEN 12 + svc.FullYears / 5
-            ELSE ROUND(12.0 * (12 - MONTH(e.HireDate) + CASE WHEN DAY(e.HireDate) <= 15 THEN 1 ELSE 0 END) / 12, 0)
-       END
-FROM dbo.Employees AS e
-CROSS JOIN dbo.LeaveTypes AS lt
-CROSS APPLY (SELECT DATEDIFF(YEAR, e.HireDate, @YearStart)
-                    - CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, e.HireDate, @YearStart), e.HireDate) > @YearStart
-                           THEN 1 ELSE 0 END AS FullYears) AS svc
-WHERE lt.LeaveTypeCode = 'ANNUAL'
-  AND e.HireDate <= @YearEnd
-  AND (e.TerminationDate IS NULL OR e.TerminationDate >= @YearStart);
+EXEC dbo.sp_InitLeaveBalances @Year = 2026;
 GO
 
 /* -----------------------------------------------------------------------------
@@ -476,6 +458,20 @@ CROSS APPLY (SELECT CAST(ROUND(c.SelfWeight * s.SelfAvg + (1 - c.SelfWeight) * s
 WHERE t.TargetStatus IN ('PENDING_MANAGER', 'COMPLETED');
 GO
 
+/* -----------------------------------------------------------------------------
+   10. Payroll – Aug & Sep 2026 paid, Oct 2026 calculated and waiting for approval
+   ----------------------------------------------------------------------------- */
+EXEC dbo.sp_CalculateMonthlyPayroll @PeriodYear = 2026, @PeriodMonth = 8,  @CalculatedBy = 'hr';
+EXEC dbo.sp_CalculateMonthlyPayroll @PeriodYear = 2026, @PeriodMonth = 9,  @CalculatedBy = 'hr';
+EXEC dbo.sp_CalculateMonthlyPayroll @PeriodYear = 2026, @PeriodMonth = 10, @CalculatedBy = 'hr';
+
+UPDATE dbo.PayrollPeriods
+   SET Status = 'PAID', ApprovedBy = 'admin',
+       ApprovedAt = DATEADD(HOUR, 2, CAST(DATEADD(DAY, 3, EOMONTH(DATEFROMPARTS(PeriodYear, PeriodMonth, 1))) AS DATETIME2(0))),
+       PaidAt     = DATEADD(HOUR, 3, CAST(DATEADD(DAY, 5, EOMONTH(DATEFROMPARTS(PeriodYear, PeriodMonth, 1))) AS DATETIME2(0)))
+WHERE PeriodYear = 2026 AND PeriodMonth IN (8, 9);
+GO
+
 PRINT N'Seed completed.';
 SELECT 'Departments' AS TableName, COUNT(*) AS Rows FROM dbo.Departments
 UNION ALL SELECT 'Positions', COUNT(*) FROM dbo.Positions
@@ -484,5 +480,6 @@ UNION ALL SELECT 'Users', COUNT(*) FROM dbo.Users
 UNION ALL SELECT 'Attendance', COUNT(*) FROM dbo.Attendance
 UNION ALL SELECT 'LeaveRequests', COUNT(*) FROM dbo.LeaveRequests
 UNION ALL SELECT 'Candidates', COUNT(*) FROM dbo.Candidates
-UNION ALL SELECT 'PerformanceReviews', COUNT(*) FROM dbo.PerformanceReviews;
+UNION ALL SELECT 'PerformanceReviews', COUNT(*) FROM dbo.PerformanceReviews
+UNION ALL SELECT 'Payroll', COUNT(*) FROM dbo.Payroll;
 GO

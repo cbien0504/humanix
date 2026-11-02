@@ -265,9 +265,11 @@ CREATE TABLE dbo.LeaveRequests (
 -- Overlap check & "my requests" – seek on employee, range on dates
 CREATE INDEX IX_LeaveRequests_Employee_Dates ON dbo.LeaveRequests (EmployeeId, StartDate, EndDate)
     INCLUDE (Status, LeaveTypeId, TotalDays);
--- Approval queue only ever looks at PENDING rows – a small filtered index
+-- Approval queue only ever looks at PENDING rows – a small filtered index.
+-- The filter column Status is INCLUDEd on purpose: without it the optimiser ignored
+-- the index for COUNT/MIN queries (measured in docs/03-query-optimization.md, case 4).
 CREATE INDEX IX_LeaveRequests_Pending ON dbo.LeaveRequests (StartDate)
-    INCLUDE (EmployeeId, LeaveTypeId) WHERE Status = 'PENDING';
+    INCLUDE (EmployeeId, LeaveTypeId, Status) WHERE Status = 'PENDING';
 CREATE INDEX IX_LeaveRequests_LeaveTypeId ON dbo.LeaveRequests (LeaveTypeId);
 
 /* -----------------------------------------------------------------------------

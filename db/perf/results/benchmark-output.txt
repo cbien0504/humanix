@@ -1,0 +1,303 @@
+ 
+-
+731764
+ 
+-
+29990
+### CASE 1A - no index on WorkDate
+StmtText
+--------
+SELECT COUNT(*) AS Employees, SUM(x.Days) AS Days, SUM(x.Hours) AS Hours, SUM(x.LateMin) AS LateMin FROM (
+    SELECT a.EmployeeId, COUNT(*) AS Days, SUM(a.WorkHours) AS Hours, SUM(CAST(a.LateMinutes AS INT)) AS LateMin
+    FROM dbo.Attendance AS a
+    WHERE a.WorkDate >= '2026-10-01' AND a.WorkDate <= '2026-10-31'
+    GROUP BY a.EmployeeId) AS x OPTION (MAXDOP 1);
+StmtText
+--------
+  |--Compute Scalar(DEFINE:([Expr1004]=CONVERT_IMPLICIT(int,[Expr1034],0), [Expr1005]=CASE WHEN [Expr1035]=(0) THEN NULL ELSE [Expr1036] END, [Expr1006]=CASE WHEN [Expr1037]=(0) THEN NULL ELSE [Expr1038] END, [Expr1007]=CASE WHEN [Expr1039]=(0) THEN NULL ELSE [Expr1040] END))
+       |--Stream Aggregate(DEFINE:([Expr1034]=Count(*), [Expr1035]=COUNT_BIG([Expr1001]), [Expr1036]=SUM([Expr1001]), [Expr1037]=COUNT_BIG([Expr1002]), [Expr1038]=SUM([Expr1002]), [Expr1039]=COUNT_BIG([Expr1003]), [Expr1040]=SUM([Expr1003])))
+            |--Compute Scalar(DEFINE:([Expr1001]=CONVERT_IMPLICIT(int,[Expr1031],0), [Expr1002]=CASE WHEN [Expr1032]=(0) THEN NULL ELSE [Expr1033] END))
+                 |--Hash Match(Aggregate, HASH:([a].[EmployeeId]) DEFINE:([Expr1031]=COUNT(*), [Expr1032]=COUNT_BIG([Expr1008]), [Expr1033]=SUM([Expr1008]), [Expr1003]=SUM([Expr1009])))
+                      |--Compute Scalar(DEFINE:([Expr1008]=[HRM_PERF].[dbo].[Attendance].[WorkHours] as [a].[WorkHours], [Expr1009]=CONVERT(int,[HRM_PERF].[dbo].[Attendance].[LateMinutes] as [a].[LateMinutes],0)))
+                           |--Clustered Index Scan(OBJECT:([HRM_PERF].[dbo].[Attendance].[PK_Attendance] AS [a]), WHERE:([HRM_PERF].[dbo].[Attendance].[WorkDate] as [a].[WorkDate]>='2026-10-01' AND [HRM_PERF].[dbo].[Attendance].[WorkDate] as [a].[WorkDate]<='2026-10-31'))
+Employees Days Hours LateMin
+--------- ---- ----- -------
+3000 64562 626001.65 152369
+Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Workfile'. Scan count 0, logical reads 0, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Attendance'. Scan count 1, logical reads 6551, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 44 ms,  elapsed time = 44 ms.
+### CASE 1B - non-covering index on WorkDate
+StmtText
+--------
+SELECT COUNT(*) AS Employees, SUM(x.Days) AS Days, SUM(x.Hours) AS Hours, SUM(x.LateMin) AS LateMin FROM (
+    SELECT a.EmployeeId, COUNT(*) AS Days, SUM(a.WorkHours) AS Hours, SUM(CAST(a.LateMinutes AS INT)) AS LateMin
+    FROM dbo.Attendance AS a
+    WHERE a.WorkDate >= '2026-10-01' AND a.WorkDate <= '2026-10-31'
+    GROUP BY a.EmployeeId) AS x OPTION (MAXDOP 1);
+StmtText
+--------
+  |--Compute Scalar(DEFINE:([Expr1004]=CONVERT_IMPLICIT(int,[Expr1034],0), [Expr1005]=CASE WHEN [Expr1035]=(0) THEN NULL ELSE [Expr1036] END, [Expr1006]=CASE WHEN [Expr1037]=(0) THEN NULL ELSE [Expr1038] END, [Expr1007]=CASE WHEN [Expr1039]=(0) THEN NULL ELSE [Expr1040] END))
+       |--Stream Aggregate(DEFINE:([Expr1034]=Count(*), [Expr1035]=COUNT_BIG([Expr1001]), [Expr1036]=SUM([Expr1001]), [Expr1037]=COUNT_BIG([Expr1002]), [Expr1038]=SUM([Expr1002]), [Expr1039]=COUNT_BIG([Expr1003]), [Expr1040]=SUM([Expr1003])))
+            |--Compute Scalar(DEFINE:([Expr1001]=CONVERT_IMPLICIT(int,[Expr1031],0), [Expr1002]=CASE WHEN [Expr1032]=(0) THEN NULL ELSE [Expr1033] END))
+                 |--Hash Match(Aggregate, HASH:([a].[EmployeeId]) DEFINE:([Expr1031]=COUNT(*), [Expr1032]=COUNT_BIG([Expr1008]), [Expr1033]=SUM([Expr1008]), [Expr1003]=SUM([Expr1009])))
+                      |--Compute Scalar(DEFINE:([Expr1008]=[HRM_PERF].[dbo].[Attendance].[WorkHours] as [a].[WorkHours], [Expr1009]=CONVERT(int,[HRM_PERF].[dbo].[Attendance].[LateMinutes] as [a].[LateMinutes],0)))
+                           |--Clustered Index Scan(OBJECT:([HRM_PERF].[dbo].[Attendance].[PK_Attendance] AS [a]), WHERE:([HRM_PERF].[dbo].[Attendance].[WorkDate] as [a].[WorkDate]>='2026-10-01' AND [HRM_PERF].[dbo].[Attendance].[WorkDate] as [a].[WorkDate]<='2026-10-31'))
+Employees Days Hours LateMin
+--------- ---- ----- -------
+3000 64562 626001.65 152369
+Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Workfile'. Scan count 0, logical reads 0, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Attendance'. Scan count 1, logical reads 6551, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 46 ms,  elapsed time = 45 ms.
+Employees Days Hours LateMin
+--------- ---- ----- -------
+3000 64562 626001.65 152369
+Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Workfile'. Scan count 0, logical reads 0, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Attendance'. Scan count 1, logical reads 197870, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 75 ms,  elapsed time = 74 ms.
+### CASE 1C - covering index (WorkDate) INCLUDE (EmployeeId, Status, LateMinutes, WorkHours)
+StmtText
+--------
+SELECT COUNT(*) AS Employees, SUM(x.Days) AS Days, SUM(x.Hours) AS Hours, SUM(x.LateMin) AS LateMin FROM (
+    SELECT a.EmployeeId, COUNT(*) AS Days, SUM(a.WorkHours) AS Hours, SUM(CAST(a.LateMinutes AS INT)) AS LateMin
+    FROM dbo.Attendance AS a
+    WHERE a.WorkDate >= '2026-10-01' AND a.WorkDate <= '2026-10-31'
+    GROUP BY a.EmployeeId) AS x OPTION (MAXDOP 1);
+StmtText
+--------
+  |--Compute Scalar(DEFINE:([Expr1004]=CONVERT_IMPLICIT(int,[Expr1034],0), [Expr1005]=CASE WHEN [Expr1035]=(0) THEN NULL ELSE [Expr1036] END, [Expr1006]=CASE WHEN [Expr1037]=(0) THEN NULL ELSE [Expr1038] END, [Expr1007]=CASE WHEN [Expr1039]=(0) THEN NULL ELSE [Expr1040] END))
+       |--Stream Aggregate(DEFINE:([Expr1034]=Count(*), [Expr1035]=COUNT_BIG([Expr1001]), [Expr1036]=SUM([Expr1001]), [Expr1037]=COUNT_BIG([Expr1002]), [Expr1038]=SUM([Expr1002]), [Expr1039]=COUNT_BIG([Expr1003]), [Expr1040]=SUM([Expr1003])))
+            |--Compute Scalar(DEFINE:([Expr1001]=CONVERT_IMPLICIT(int,[Expr1031],0), [Expr1002]=CASE WHEN [Expr1032]=(0) THEN NULL ELSE [Expr1033] END))
+                 |--Hash Match(Aggregate, HASH:([a].[EmployeeId]) DEFINE:([Expr1031]=COUNT(*), [Expr1032]=COUNT_BIG([Expr1008]), [Expr1033]=SUM([Expr1008]), [Expr1003]=SUM([Expr1009])))
+                      |--Compute Scalar(DEFINE:([Expr1008]=[HRM_PERF].[dbo].[Attendance].[WorkHours] as [a].[WorkHours], [Expr1009]=CONVERT(int,[HRM_PERF].[dbo].[Attendance].[LateMinutes] as [a].[LateMinutes],0)))
+                           |--Index Seek(OBJECT:([HRM_PERF].[dbo].[Attendance].[IX_Attendance_WorkDate] AS [a]), SEEK:([a].[WorkDate] >= '2026-10-01' AND [a].[WorkDate] <= '2026-10-31') ORDERED FORWARD)
+SQL Server parse and compile time: 
+   CPU time = 1 ms, elapsed time = 2 ms.
+Employees Days Hours LateMin
+--------- ---- ----- -------
+3000 64562 626001.65 152369
+Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Workfile'. Scan count 0, logical reads 0, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Attendance'. Scan count 1, logical reads 314, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 15 ms,  elapsed time = 15 ms.
+### CASE 2A - non-sargable YEAR(WorkDate) = 2026 AND MONTH(WorkDate) = 10
+StmtText
+--------
+SELECT COUNT(*) FROM dbo.Attendance AS a
+WHERE YEAR(a.WorkDate) = 2026 AND MONTH(a.WorkDate) = 10 OPTION (MAXDOP 1);
+StmtText
+--------
+  |--Compute Scalar(DEFINE:([Expr1001]=CONVERT_IMPLICIT(int,[Expr1004],0)))
+       |--Stream Aggregate(DEFINE:([Expr1004]=Count(*)))
+            |--Index Scan(OBJECT:([HRM_PERF].[dbo].[Attendance].[UQ_Attendance_EmployeeDate] AS [a]),  WHERE:(datepart(year,[HRM_PERF].[dbo].[Attendance].[WorkDate] as [a].[WorkDate])=(2026) AND datepart(month,[HRM_PERF].[dbo].[Attendance].[WorkDate] as [a].[WorkDate])=(10)))
+ 
+-
+64562
+Table 'Attendance'. Scan count 1, logical reads 1911, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 87 ms,  elapsed time = 87 ms.
+### CASE 2B - sargable WorkDate >= 2026-10-01 AND WorkDate < 2026-11-01
+StmtText
+--------
+SELECT COUNT(*) FROM dbo.Attendance AS a
+WHERE a.WorkDate >= '2026-10-01' AND a.WorkDate < '2026-11-01' OPTION (MAXDOP 1);
+StmtText
+--------
+  |--Compute Scalar(DEFINE:([Expr1001]=CONVERT_IMPLICIT(int,[Expr1002],0)))
+       |--Stream Aggregate(DEFINE:([Expr1002]=Count(*)))
+            |--Index Seek(OBJECT:([HRM_PERF].[dbo].[Attendance].[IX_Attendance_WorkDate] AS [a]), SEEK:([a].[WorkDate] >= '2026-10-01' AND [a].[WorkDate] < '2026-11-01') ORDERED FORWARD)
+ 
+-
+64562
+Table 'Attendance'. Scan count 1, logical reads 314, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 3 ms,  elapsed time = 3 ms.
+### CASE 3A - overlap check without index
+StmtText
+--------
+SELECT TOP (1) lr.LeaveRequestId FROM dbo.LeaveRequests AS lr
+WHERE lr.EmployeeId = 1500 AND lr.Status IN ('PENDING', 'APPROVED')
+  AND lr.StartDate <= '2026-03-10' AND lr.EndDate >= '2026-03-09';
+StmtText
+--------
+  |--Top(TOP EXPRESSION:((1)))
+       |--Clustered Index Scan(OBJECT:([HRM_PERF].[dbo].[LeaveRequests].[PK_LeaveRequests] AS [lr]), WHERE:([HRM_PERF].[dbo].[LeaveRequests].[EmployeeId] as [lr].[EmployeeId]=(1500) AND [HRM_PERF].[dbo].[LeaveRequests].[StartDate] as [lr].[StartDate]<='2026-03-10' AND [HRM_PERF].[dbo].[LeaveRequests].[EndDate] as [lr].[EndDate]>='2026-03-09' AND ([HRM_PERF].[dbo].[LeaveRequests].[Status] as [lr].[Status]='APPROVED' OR [HRM_PERF].[dbo].[LeaveRequests].[Status] as [lr].[Status]='PENDING')))
+LeaveRequestId
+--------------
+Table 'LeaveRequests'. Scan count 1, logical reads 325, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 2 ms,  elapsed time = 2 ms.
+### CASE 3B - overlap check with IX_LeaveRequests_Employee_Dates
+StmtText
+--------
+SELECT TOP (1) lr.LeaveRequestId FROM dbo.LeaveRequests AS lr
+WHERE lr.EmployeeId = 1500 AND lr.Status IN ('PENDING', 'APPROVED')
+  AND lr.StartDate <= '2026-03-10' AND lr.EndDate >= '2026-03-09';
+StmtText
+--------
+  |--Top(TOP EXPRESSION:((1)))
+       |--Index Seek(OBJECT:([HRM_PERF].[dbo].[LeaveRequests].[IX_LeaveRequests_Employee_Dates] AS [lr]), SEEK:([lr].[EmployeeId]=(1500) AND [lr].[StartDate] <= '2026-03-10'),  WHERE:([HRM_PERF].[dbo].[LeaveRequests].[EndDate] as [lr].[EndDate]>='2026-03-09' AND ([HRM_PERF].[dbo].[LeaveRequests].[Status] as [lr].[Status]='APPROVED' OR [HRM_PERF].[dbo].[LeaveRequests].[Status] as [lr].[Status]='PENDING')) ORDERED FORWARD)
+SQL Server parse and compile time: 
+   CPU time = 0 ms, elapsed time = 1 ms.
+LeaveRequestId
+--------------
+Table 'LeaveRequests'. Scan count 1, logical reads 2, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 0 ms,  elapsed time = 0 ms.
+### CASE 4A - pending queue without filtered index
+SQL Server parse and compile time: 
+   CPU time = 0 ms, elapsed time = 0 ms.
+Pending FirstStart
+------- ----------
+300 2025-11-03
+Table 'LeaveRequests'. Scan count 1, logical reads 155, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 2 ms,  elapsed time = 2 ms.
+### CASE 4B - filtered index without the filter column (Status)
+SQL Server parse and compile time: 
+   CPU time = 0 ms, elapsed time = 0 ms.
+Pending FirstStart
+------- ----------
+300 2025-11-03
+Table 'LeaveRequests'. Scan count 1, logical reads 155, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 2 ms,  elapsed time = 2 ms.
+SQL Server parse and compile time: 
+   CPU time = 0 ms, elapsed time = 0 ms.
+Pending FirstStart
+------- ----------
+300 2025-11-03
+Table 'LeaveRequests'. Scan count 1, logical reads 2, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 0 ms,  elapsed time = 0 ms.
+### CASE 4C - filtered index INCLUDE (Status), literal predicate, joined like the application query
+StmtText
+--------
+SELECT lr.LeaveRequestId, e.FullName, lr.StartDate FROM dbo.LeaveRequests AS lr
+JOIN dbo.Employees AS e ON e.EmployeeId = lr.EmployeeId
+WHERE lr.Status = 'PENDING' ORDER BY lr.StartDate;
+StmtText
+--------
+  |--Sort(ORDER BY:([lr].[StartDate] ASC))
+       |--Hash Match(Inner Join, HASH:([lr].[EmployeeId])=([e].[EmployeeId]))
+            |--Index Scan(OBJECT:([HRM_PERF].[dbo].[LeaveRequests].[IX_LeaveRequests_Pending] AS [lr]))
+            |--Index Scan(OBJECT:([HRM_PERF].[dbo].[Employees].[IX_Employees_FullName] AS [e]))
+SQL Server parse and compile time: 
+   CPU time = 0 ms, elapsed time = 0 ms.
+Pending FirstStart
+------- ----------
+300 2025-11-03
+Table 'LeaveRequests'. Scan count 1, logical reads 4, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 0 ms,  elapsed time = 0 ms.
+Pending
+-------
+300
+Table 'LeaveRequests'. Scan count 1, logical reads 4, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 0 ms,  elapsed time = 0 ms.
+### CASE 4D - value in a variable (plan must be valid for any value)
+
+ SQL Server Execution Times:
+   CPU time = 0 ms,  elapsed time = 0 ms.
+Pending FirstStart
+------- ----------
+300 2025-11-03
+Table 'LeaveRequests'. Scan count 1, logical reads 155, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 2 ms,  elapsed time = 1 ms.
+IndexName Pages IndexRows
+--------- ----- ---------
+IX_Attendance_WorkDate 3538 731764
+IX_LeaveRequests_Employee_Dates 155 29990
+IX_LeaveRequests_LeaveTypeId 54 29990
+IX_LeaveRequests_Pending 4 300
+PK_Attendance 6551 731764
+PK_LeaveRequests 325 29990
+UQ_Attendance_EmployeeDate 1911 731764
+### CASE 5A - LIKE N'%hung%' (leading wildcard)
+StmtText
+--------
+SELECT EmployeeId, EmployeeCode, FullName FROM dbo.Employees WHERE FullName LIKE N'%hung%';
+StmtText
+--------
+  |--Clustered Index Scan(OBJECT:([HRM_PERF].[dbo].[Employees].[PK_Employees]), WHERE:([HRM_PERF].[dbo].[Employees].[FullName] like N'%hung%'))
+ 
+-
+191
+Table 'Employees'. Scan count 1, logical reads 17, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 2 ms,  elapsed time = 2 ms.
+### CASE 5B - LIKE N'nguyen van%' (prefix, accent-insensitive collation)
+StmtText
+--------
+SELECT EmployeeId, EmployeeCode, FullName FROM dbo.Employees WHERE FullName LIKE N'nguyen van%';
+StmtText
+--------
+  |--Hash Match(Inner Join, HASH:([HRM_PERF].[dbo].[Employees].[EmployeeId])=([HRM_PERF].[dbo].[Employees].[EmployeeId]))
+       |--Index Seek(OBJECT:([HRM_PERF].[dbo].[Employees].[IX_Employees_FullName]), SEEK:([HRM_PERF].[dbo].[Employees].[FullName] >= N'nguyen van' AND [HRM_PERF].[dbo].[Employees].[FullName] < N'nguyen vaO'),  WHERE:([HRM_PERF].[dbo].[Employees].[FullName] like N'nguyen van%') ORDERED FORWARD)
+       |--Index Scan(OBJECT:([HRM_PERF].[dbo].[Employees].[UQ_Employees_EmployeeCode]))
+ 
+-
+31
+Table 'Employees'. Scan count 1, logical reads 3, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 0 ms,  elapsed time = 0 ms.
+### CASE 6A - vw_MonthlyAttendanceSummary WHERE WorkYear = 2026 AND WorkMonth = 10
+SQL Server parse and compile time: 
+   CPU time = 0 ms, elapsed time = 0 ms.
+   
+- -
+3000 64562.0
+Table 'LeaveRequests'. Scan count 13, logical reads 460, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Attendance'. Scan count 13, logical reads 3704, physical reads 0, page server reads 0, read-ahead reads 70, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Employees'. Scan count 7, logical reads 19, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Holidays'. Scan count 12, logical reads 132, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Worktable'. Scan count 25, logical reads 43604, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+
+ SQL Server Execution Times:
+   CPU time = 403 ms,  elapsed time = 46 ms.
+### CASE 6B - sp_GetAttendanceReport 2026-10-01..2026-10-31
+Table '#BC677CA7'. Scan count 0, logical reads 45, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Holidays'. Scan count 1, logical reads 45, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Workfile'. Scan count 0, logical reads 0, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Employees'. Scan count 2, logical reads 72, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Positions'. Scan count 1, logical reads 2, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Departments'. Scan count 1, logical reads 2, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Attendance'. Scan count 22, logical reads 400, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table '#BC677CA7'. Scan count 1, logical reads 2, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'LeaveRequests'. Scan count 1, logical reads 155, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table '#B98B0FFC'. Scan count 0, logical reads 3052, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Table 'Worktable'. Scan count 1, logical reads 6464, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+Rows WorkedDays ElapsedMs
+---- ---------- ---------
+3000 64562.0 130
+### CASE 7 - sp_CalculateMonthlyPayroll 2026-10 (3,000 employees)
+EmployeeCount TotalGross TotalNet ElapsedMs
+------------- ---------- -------- ---------
+3000 82909681690.00 72354534600.00 273
