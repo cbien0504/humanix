@@ -11,7 +11,7 @@ thông tin nhân viên, chấm công & nghỉ phép, tính lương, tuyển dụ
 | 2 | Thiết kế CSDL – [docs/02-database-design.md](docs/02-database-design.md), [db/](db) | ✅ |
 | 3 | Stored procedure, view, tối ưu truy vấn, kiểm tra dữ liệu – [docs/03-query-optimization.md](docs/03-query-optimization.md) | ✅ |
 | 4 | Kiến trúc ứng dụng – [docs/04-architecture.md](docs/04-architecture.md) | ✅ |
-| 5 | Phát triển tính năng | ⏳ |
+| 5 | Phát triển tính năng (6 module + dashboard, báo cáo) | ✅ |
 | 6 | REST API & import dữ liệu | ⏳ |
 | 7 | Kiểm thử | ⏳ |
 | 8 | Xử lý sự cố & logging | ⏳ |
@@ -44,6 +44,18 @@ tuyển dụng, đánh giá. Truyền thêm `-e APP_DB_PASSWORD=...` để tạo
 | `db/views.sql` | `vw_EmployeeDetails`, `vw_MonthlyAttendanceSummary`, `vw_PayrollDetails` |
 | `db/data-validation.sql` | 16 kiểm tra toàn vẹn (trùng mã NV, lương âm, nghỉ phép chồng lấn…) + tự kiểm thử |
 | `db/perf/run-benchmark.sh` | Sinh 731.764 dòng chấm công vào DB riêng `HRM_PERF` và đo execution plan |
+
+## Tính năng chính
+
+| Module | Chức năng |
+|--------|-----------|
+| Xác thực & phân quyền | Đăng nhập BCrypt, khóa 15 phút sau 5 lần sai, đổi mật khẩu, quản trị tài khoản & vai trò, CSRF, phân quyền URL + phạm vi dữ liệu, nhật ký audit |
+| Thông tin nhân viên | Phòng ban, chức danh & khung lương, hồ sơ nhân viên (tìm kiếm không dấu, lọc, sắp xếp, phân trang), lịch sử lương |
+| Chấm công & nghỉ phép | Check-in/out theo giờ server, quy tắc đi muộn/nửa ngày, HR điều chỉnh; đơn nghỉ phép, số dư, luồng duyệt của quản lý |
+| Tính lương | Kỳ lương OPEN→CALCULATED→APPROVED→PAID, SP tính lương set-based, phiếu lương, mô phỏng Gross→Net, xuất Excel/CSV |
+| Tuyển dụng | Tin tuyển dụng, pipeline ứng viên dạng Kanban, lịch sử bước, tiếp nhận thành nhân viên thử việc |
+| Đánh giá hiệu suất | Kỳ đánh giá, tiêu chí có trọng số, tự đánh giá → quản lý chấm, xếp loại A–E |
+| Báo cáo & dashboard | Dashboard theo vai trò (Chart.js), thống kê phòng ban, báo cáo chấm công, xuất Excel/CSV |
 
 ## Build & chạy ứng dụng (Tomcat)
 

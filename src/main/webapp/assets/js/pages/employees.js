@@ -103,6 +103,17 @@ $(function () {
     }
 
     // ---------------------------------------------------------------- actions
+    $('#btnExport').on('click', function () {
+        var params = HRM.form.toObject($('#filterForm'));
+        $.each(params, function (k, v) {
+            if (v === null) {
+                delete params[k];
+            }
+        });
+        params.format = 'xlsx';
+        window.location.href = HRM.url('/reports/employees/export?' + $.param(params));
+    });
+
     $('#btnAdd').on('click', function () {
         HRM.get('/api/employees/next-code').done(function (res) {
             open({employeeCode: res.employeeCode, gender: 'M', status: 'PROBATION', allowance: 0, dependents: 0,

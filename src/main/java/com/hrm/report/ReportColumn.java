@@ -30,4 +30,9 @@ public record ReportColumn(String header, ColumnType type, int width, boolean to
     public ReportColumn withTotal() {
         return new ReportColumn(header, type, width, true);
     }
+
+    /** For averages and rates, where a SUM row would be meaningless. */
+    public ReportColumn noTotal() {
+        return new ReportColumn(header, type, width, false);
+    }
 }

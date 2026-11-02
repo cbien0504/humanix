@@ -382,3 +382,46 @@ body {
     body { padding-top: 0; background: #fff; }
     .app-main { padding: 0; }
 }
+
+/* ---------- charts (see assets/js/charts.js) ---------- */
+.chart-box {
+    position: relative;
+    height: 260px;
+}
+
+.seg-bar {
+    display: flex;
+    gap: 2px;
+    height: 28px;
+}
+
+.seg {
+    min-width: 4px;
+    border-radius: 4px;
+    color: #fff;
+    font-size: .75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    padding-left: 6px;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.seg-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem 1rem;
+    margin-top: .5rem;
+    font-size: .8rem;
+    color: #52514e;
+}
+
+.seg-key i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: .35rem;
+    vertical-align: -1px;
+}

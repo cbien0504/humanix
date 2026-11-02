@@ -7,6 +7,7 @@ import com.hrm.web.api.CandidateApiController;
 import com.hrm.web.api.LeaveApiController;
 import com.hrm.web.api.PayrollApiController;
 import com.hrm.web.api.PerformanceApiController;
+import com.hrm.web.api.ReportApiController;
 import com.hrm.web.api.DepartmentApiController;
 import com.hrm.web.api.EmployeeApiController;
 import com.hrm.web.api.JobApiController;
@@ -23,6 +24,7 @@ import com.hrm.web.controller.PayrollController;
 import com.hrm.web.controller.PerformanceController;
 import com.hrm.web.controller.ProfileController;
 import com.hrm.web.controller.RecruitmentController;
+import com.hrm.web.controller.ReportController;
 import com.hrm.web.controller.ViewController;
 import com.hrm.web.filter.AuthenticationFilter;
 import com.hrm.web.filter.AuthorizationFilter;
@@ -126,6 +128,10 @@ public class AppBootstrap implements ServletContextListener {
         servlet(sc, "performance", new PerformanceController(app.performanceService()), "/performance/*");
         servlet(sc, "apiReviewCycles", PerformanceApiController.cycles(app.performanceService()), "/api/review-cycles/*");
         servlet(sc, "apiReviews", PerformanceApiController.reviews(app.performanceService()), "/api/reviews/*");
+        // reports & dashboard
+        servlet(sc, "reports", new ReportController(app.reportService(), app.departmentService()), "/reports/*");
+        servlet(sc, "apiReports", ReportApiController.reports(app.reportService()), "/api/reports/*");
+        servlet(sc, "apiDashboard", ReportApiController.dashboard(app.dashboardService()), "/api/dashboard/*");
     }
 
     private static void filter(ServletContext sc, String name, Filter filter, String... patterns) {

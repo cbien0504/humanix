@@ -10,6 +10,7 @@ import com.hrm.dao.LeaveDao;
 import com.hrm.dao.PayrollDao;
 import com.hrm.dao.PerformanceDao;
 import com.hrm.dao.RecruitmentDao;
+import com.hrm.dao.ReportDao;
 import com.hrm.dao.PositionDao;
 import com.hrm.dao.UserDao;
 import com.hrm.dao.jdbc.JdbcAttendanceDao;
@@ -23,6 +24,7 @@ import com.hrm.dao.jdbc.JdbcLeaveDao;
 import com.hrm.dao.jdbc.JdbcPayrollDao;
 import com.hrm.dao.jdbc.JdbcPerformanceDao;
 import com.hrm.dao.jdbc.JdbcRecruitmentDao;
+import com.hrm.dao.jdbc.JdbcReportDao;
 import com.hrm.dao.jdbc.JdbcPositionDao;
 import com.hrm.dao.jdbc.JdbcUserDao;
 import com.hrm.security.AccessPolicy;
@@ -34,6 +36,7 @@ import com.hrm.service.AttendancePolicy;
 import com.hrm.service.AttendanceService;
 import com.hrm.service.AuditService;
 import com.hrm.service.AuthService;
+import com.hrm.service.DashboardService;
 import com.hrm.service.DataQualityService;
 import com.hrm.service.DepartmentService;
 import com.hrm.service.EmployeeService;
@@ -42,6 +45,7 @@ import com.hrm.service.PayrollCalculator;
 import com.hrm.service.PayrollService;
 import com.hrm.service.PerformanceService;
 import com.hrm.service.RecruitmentService;
+import com.hrm.service.ReportService;
 import com.hrm.service.PositionService;
 import com.hrm.service.UserService;
 import com.zaxxer.hikari.HikariDataSource;
@@ -82,6 +86,8 @@ public final class AppContext implements AutoCloseable {
     private final PayrollService payrollService;
     private final RecruitmentService recruitmentService;
     private final PerformanceService performanceService;
+    private final ReportService reportService;
+    private final DashboardService dashboardService;
 
     private AppContext(AppConfig config) {
         this.config = config;
@@ -103,6 +109,7 @@ public final class AppContext implements AutoCloseable {
         PayrollDao payrollDao = new JdbcPayrollDao(jdbc);
         RecruitmentDao recruitmentDao = new JdbcRecruitmentDao(jdbc);
         PerformanceDao performanceDao = new JdbcPerformanceDao(jdbc);
+        ReportDao reportDao = new JdbcReportDao(jdbc);
 
         // security
         this.passwordHasher = new BCryptPasswordHasher(config.getInt("security.bcryptCost", 10));
@@ -128,6 +135,9 @@ public final class AppContext implements AutoCloseable {
         this.recruitmentService = new RecruitmentService(recruitmentDao, departmentDao, positionDao, employeeService,
                 auditService, jdbc, clock);
         this.performanceService = new PerformanceService(performanceDao, auditService, jdbc);
+        this.reportService = new ReportService(reportDao, departmentDao, employeeDao, auditService, clock);
+        this.dashboardService = new DashboardService(reportDao, attendanceDao, leaveDao, payrollDao, performanceDao,
+                recruitmentDao, clock);
     }
 
     public static AppContext create(AppConfig config) {
@@ -197,6 +207,14 @@ public final class AppContext implements AutoCloseable {
 
     public PerformanceService performanceService() {
         return performanceService;
+    }
+
+    public ReportService reportService() {
+        return reportService;
+    }
+
+    public DashboardService dashboardService() {
+        return dashboardService;
     }
 
     @Override

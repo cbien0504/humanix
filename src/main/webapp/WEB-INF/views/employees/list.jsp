@@ -15,6 +15,7 @@
         </div>
         <c:if test="${u.hr}">
             <div class="d-flex gap-2">
+                <button class="btn btn-outline-success" id="btnExport"><i class="bi bi-file-earmark-excel me-1"></i>Xuất Excel</button>
                 <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/import"><i class="bi bi-upload me-1"></i>Import</a>
                 <button class="btn btn-primary" id="btnAdd"><i class="bi bi-person-plus me-1"></i>Thêm nhân viên</button>
             </div>

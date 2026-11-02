@@ -2,6 +2,7 @@
 <%@ attribute name="title" required="true" %>
 <%@ attribute name="active" required="false" description="key of the highlighted menu entry" %>
 <%@ attribute name="script" required="false" description="page script /assets/js/pages/{script}.js" %>
+<%@ attribute name="charts" required="false" type="java.lang.Boolean" description="load Chart.js" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
@@ -114,6 +115,10 @@
 <script src="${ctx}/webjars/jquery/3.7.1/dist/jquery.min.js"></script>
 <script src="${ctx}/webjars/bootstrap/5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="${ctx}/assets/js/app.js?v=${applicationScope.assetVersion}"></script>
+<c:if test="${charts}">
+    <script src="${ctx}/webjars/chart.js/4.4.1/dist/chart.umd.js"></script>
+    <script src="${ctx}/assets/js/charts.js?v=${applicationScope.assetVersion}"></script>
+</c:if>
 <c:if test="${not empty script}">
     <script src="${ctx}/assets/js/pages/${script}.js?v=${applicationScope.assetVersion}"></script>
 </c:if>

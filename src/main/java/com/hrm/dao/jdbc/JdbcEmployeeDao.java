@@ -101,6 +101,12 @@ public class JdbcEmployeeDao implements EmployeeDao {
     }
 
     @Override
+    public List<Employee> findAll(EmployeeFilter filter) {
+        SqlWhere where = where(filter);
+        return jdbc.query(SELECT + where.toSql() + " ORDER BY e.EmployeeCode", JdbcEmployeeDao::map, where.params().toArray());
+    }
+
+    @Override
     public Optional<Employee> findById(long id) {
         return jdbc.queryOne(SELECT + " WHERE e.EmployeeId = ?", JdbcEmployeeDao::map, id);
     }

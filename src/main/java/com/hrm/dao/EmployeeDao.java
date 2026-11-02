@@ -15,6 +15,9 @@ public interface EmployeeDao {
 
     Page<Employee> search(EmployeeFilter filter, PageRequest page);
 
+    /** All employees matching the filter (export), ordered by code. */
+    List<Employee> findAll(EmployeeFilter filter);
+
     Optional<Employee> findById(long id);
 
     Optional<Employee> findByCode(String code);

@@ -68,6 +68,7 @@ public final class AccessPolicy {
         allow("/api/candidates", ANY, Role.HR, Role.MANAGER);
         allow("/performance/manage", ANY, Role.HR, Role.MANAGER);
         allow("/api/review-cycles", WRITE, Role.HR);
+        allow("/reports/employees", ANY, Role.HR);
         allow("/reports", ANY, Role.HR, Role.MANAGER);
         allow("/api/reports", ANY, Role.HR, Role.MANAGER);
     }
