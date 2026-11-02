@@ -367,6 +367,18 @@ body {
     color: #dc3545;
 }
 
+/* Validation highlights problems only: a radio/checkbox is never "valid green" */
+.was-validated .form-check-input:valid {
+    border-color: var(--bs-border-color);
+}
+.was-validated .form-check-input:valid:checked {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+.was-validated .form-check-input:valid ~ .form-check-label {
+    color: inherit;
+}
+
 .cursor-pointer {
     cursor: pointer;
 }

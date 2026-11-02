@@ -271,7 +271,8 @@
         /** HTML5 constraint validation + custom rules (data-rule, data-match, data-after). */
         validate: function ($form) {
             HRM.form.clearErrors($form);
-            $form.find('.invalid-feedback').not('.server').show();
+            // drop the inline display left by showErrors(); .show() would force EVERY message visible
+            $form.find('.invalid-feedback').not('.server').css('display', '');
             $form.find('[data-rule]').each(function () {
                 var rule = RULES[$(this).data('rule')];
                 var value = $(this).val();
