@@ -324,7 +324,7 @@ sequenceDiagram
 |----|---------|--------------|
 | BR-01 | Mã NV duy nhất, 3–20 ký tự `A-Z 0-9 -` (ví dụ `EMP0001`) | Service + UNIQUE + CHECK |
 | BR-02 | Email duy nhất, đúng định dạng; CCCD 12 chữ số (nếu có), duy nhất; SĐT VN `0xxxxxxxxx` hoặc `+84…` | Service + UNIQUE |
-| BR-03 | Lương cơ bản > 0, phụ cấp ≥ 0, lương nằm trong khung lương của chức danh | Service + CHECK (≥ 0) |
+| BR-03 | Lương cơ bản và phụ cấp không âm; lương cơ bản nằm trong khung lương (min–max) của chức danh | Service + CHECK (≥ 0) |
 | BR-04 | Đủ 15 tuổi tại ngày vào làm | Service + CHECK |
 | BR-05 | Ngày nghỉ việc ≥ ngày vào làm; `TERMINATED` ⇔ có ngày nghỉ việc | Service + CHECK |
 | BR-06 | Không xóa NV đã phát sinh dữ liệu (chấm công, nghỉ phép, lương, đánh giá) | Service + FOREIGN KEY |
@@ -336,7 +336,7 @@ sequenceDiagram
 | Mã | Quy tắc |
 |----|---------|
 | BR-10 | Mỗi NV tối đa 1 bản ghi chấm công/ngày; giờ check-in/out lấy theo giờ server (múi giờ `Asia/Ho_Chi_Minh`) |
-| BR-11 | Giờ vào chuẩn 08:30, ân hạn 5 phút; sau đó là `LATE`, lưu số phút đi muộn |
+| BR-11 | Giờ vào chuẩn 08:30, ân hạn 5 phút; check-in sau 08:35 là `LATE` và lưu số phút đi muộn tính từ 08:30 |
 | BR-12 | Check-out phải sau check-in; tổng giờ < 4 → `HALF_DAY` (0,5 công); được check-out lại (lấy lần cuối) |
 | BR-13 | Ngày làm việc: thứ 2 – thứ 6, trừ ngày lễ trong bảng `Holidays` |
 | BR-20 | Số ngày nghỉ = số ngày làm việc trong khoảng [bắt đầu, kết thúc], phải > 0; ngày bắt đầu không sớm hơn 30 ngày trước hôm nay |
