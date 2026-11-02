@@ -17,7 +17,7 @@
     <link rel="icon" href="${ctx}/assets/img/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="${ctx}/webjars/bootstrap/5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="${ctx}/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="${ctx}/assets/css/app.css">
+    <link rel="stylesheet" href="${ctx}/assets/css/app.css?v=${applicationScope.assetVersion}">
 </head>
 <body>
 <nav class="navbar navbar-dark app-navbar fixed-top">
@@ -113,9 +113,9 @@
 
 <script src="${ctx}/webjars/jquery/3.7.1/dist/jquery.min.js"></script>
 <script src="${ctx}/webjars/bootstrap/5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="${ctx}/assets/js/app.js"></script>
+<script src="${ctx}/assets/js/app.js?v=${applicationScope.assetVersion}"></script>
 <c:if test="${not empty script}">
-    <script src="${ctx}/assets/js/pages/${script}.js"></script>
+    <script src="${ctx}/assets/js/pages/${script}.js?v=${applicationScope.assetVersion}"></script>
 </c:if>
 </body>
 </html>

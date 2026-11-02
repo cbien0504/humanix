@@ -80,8 +80,7 @@ public class JdbcUserDao implements UserDao {
                 .andIfPresent("u.IsActive = ?", active)
                 .andIf(role != null, "EXISTS (SELECT 1 FROM dbo.UserRoles ur JOIN dbo.Roles r ON r.RoleId = ur.RoleId "
                         + "WHERE ur.UserId = u.UserId AND r.RoleCode = ?)", role == null ? null : role.name());
-        String order = SORT.getOrDefault(page.sort(), "u.Username") + (page.ascending() ? " ASC" : " DESC");
-        List<User> items = jdbc.query(SELECT + where.toSql() + " ORDER BY " + order + ", u.UserId"
+        List<User> items = jdbc.query(SELECT + where.toSql() + SqlOrder.of(SORT, page, "u.Username", "u.UserId")
                         + " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY", JdbcUserDao::map,
                 where.paramsWith(page.offset(), page.size()));
         long total = jdbc.count("SELECT COUNT(*) FROM dbo.Users AS u LEFT JOIN dbo.Employees AS e "

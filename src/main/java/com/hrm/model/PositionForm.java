@@ -1,0 +1,8 @@
+package com.hrm.model;
+
+import java.math.BigDecimal;
+
+/** Write model of a position (job title + salary band). */
+public record PositionForm(String positionCode, String positionName, Integer jobLevel, BigDecimal minSalary,
+                           BigDecimal maxSalary, String description, Boolean active) {
+}

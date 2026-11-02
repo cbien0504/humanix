@@ -1,6 +1,9 @@
 package com.hrm.web.controller;
 
+import com.hrm.exception.NotFoundException;
+import com.hrm.security.AuthUser;
 import com.hrm.service.AuthService;
+import com.hrm.service.EmployeeService;
 import com.hrm.web.BaseController;
 import com.hrm.web.Router;
 import com.hrm.web.WebContext;
@@ -16,9 +19,11 @@ public class ProfileController extends BaseController {
     private static final long serialVersionUID = 1L;
 
     private final transient AuthService authService;
+    private final transient EmployeeService employeeService;
 
-    public ProfileController(AuthService authService) {
+    public ProfileController(AuthService authService, EmployeeService employeeService) {
         this.authService = authService;
+        this.employeeService = employeeService;
     }
 
     /** JSON body of the change-password form. */
@@ -27,8 +32,17 @@ public class ProfileController extends BaseController {
 
     @Override
     protected void routes(Router r) {
-        r.get("/password", ctx -> ctx.render("profile/password"))
+        r.get("/", this::myProfile)
+         .get("/password", ctx -> ctx.render("profile/password"))
          .post("/password", this::changePassword);
+    }
+
+    private void myProfile(WebContext ctx) throws jakarta.servlet.ServletException, IOException {
+        AuthUser user = ctx.requireUser();
+        if (user.getEmployeeId() == null) {
+            throw new NotFoundException("Tài khoản của bạn chưa liên kết hồ sơ nhân viên.");
+        }
+        EmployeeController.showProfile(ctx, user, employeeService.get(user, user.getEmployeeId()), employeeService);
     }
 
     private void changePassword(WebContext ctx) throws IOException {

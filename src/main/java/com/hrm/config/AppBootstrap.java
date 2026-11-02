@@ -1,14 +1,19 @@
 package com.hrm.config;
 
+import com.hrm.web.Formats;
 import com.hrm.web.api.AdminApiController;
+import com.hrm.web.api.DepartmentApiController;
+import com.hrm.web.api.EmployeeApiController;
 import com.hrm.web.api.UserApiController;
 import com.hrm.web.controller.AdminController;
 import com.hrm.web.controller.DashboardController;
+import com.hrm.web.controller.EmployeeController;
 import com.hrm.web.controller.ErrorPageServlet;
 import com.hrm.web.controller.HealthController;
 import com.hrm.web.controller.LoginController;
 import com.hrm.web.controller.LogoutController;
 import com.hrm.web.controller.ProfileController;
+import com.hrm.web.controller.ViewController;
 import com.hrm.web.filter.AuthenticationFilter;
 import com.hrm.web.filter.AuthorizationFilter;
 import com.hrm.web.filter.CharacterEncodingFilter;
@@ -51,6 +56,9 @@ public class AppBootstrap implements ServletContextListener {
         sc.setAttribute(AppContext.ATTRIBUTE, app);
         sc.setAttribute("appName", config.get("app.name", "HRM System"));
         sc.setAttribute("appVersion", config.get("app.version", "dev"));
+        // cache-busting suffix for /assets/** (changes on every deployment/restart)
+        sc.setAttribute("assetVersion", config.get("app.version", "dev") + "." + Long.toString(System.currentTimeMillis() / 1000, 36));
+        Formats.setZone(app.clock().getZone());
         sc.getSessionCookieConfig().setHttpOnly(true);
         sc.getSessionCookieConfig().setSecure(config.getBoolean("security.cookieSecure", false));
 
@@ -79,10 +87,18 @@ public class AppBootstrap implements ServletContextListener {
         servlet(sc, "login", new LoginController(app.authService(), app.config().getBoolean("ui.showDemoAccounts", false)),
                 "/login");
         servlet(sc, "logout", new LogoutController(app.auditService()), "/logout");
-        servlet(sc, "profile", new ProfileController(app.authService()), "/profile/*");
+        servlet(sc, "profile", new ProfileController(app.authService(), app.employeeService()), "/profile/*");
         servlet(sc, "admin", new AdminController(), "/admin/*");
         servlet(sc, "apiUsers", new UserApiController(app.userService()), "/api/users/*");
         servlet(sc, "apiAdmin", new AdminApiController(app.dataQualityService(), app.auditService()), "/api/admin/*");
+        // employee information
+        servlet(sc, "employees", new EmployeeController(app.employeeService(), app.departmentService(), app.positionService()),
+                "/employees/*");
+        servlet(sc, "departmentsPage", new ViewController("org/departments"), "/departments");
+        servlet(sc, "positionsPage", new ViewController("org/positions"), "/positions");
+        servlet(sc, "apiEmployees", new EmployeeApiController(app.employeeService()), "/api/employees/*");
+        servlet(sc, "apiDepartments", DepartmentApiController.departments(app.departmentService()), "/api/departments/*");
+        servlet(sc, "apiPositions", DepartmentApiController.positions(app.positionService()), "/api/positions/*");
     }
 
     private static void filter(ServletContext sc, String name, Filter filter, String... patterns) {

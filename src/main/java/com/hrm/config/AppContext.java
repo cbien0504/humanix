@@ -2,10 +2,16 @@ package com.hrm.config;
 
 import com.hrm.dao.AuditDao;
 import com.hrm.dao.DataQualityDao;
+import com.hrm.dao.DepartmentDao;
+import com.hrm.dao.EmployeeDao;
+import com.hrm.dao.PositionDao;
 import com.hrm.dao.UserDao;
 import com.hrm.dao.jdbc.JdbcAuditDao;
 import com.hrm.dao.jdbc.JdbcDataQualityDao;
+import com.hrm.dao.jdbc.JdbcDepartmentDao;
+import com.hrm.dao.jdbc.JdbcEmployeeDao;
 import com.hrm.dao.jdbc.JdbcExecutor;
+import com.hrm.dao.jdbc.JdbcPositionDao;
 import com.hrm.dao.jdbc.JdbcUserDao;
 import com.hrm.security.AccessPolicy;
 import com.hrm.security.BCryptPasswordHasher;
@@ -15,6 +21,9 @@ import com.hrm.security.UserContext;
 import com.hrm.service.AuditService;
 import com.hrm.service.AuthService;
 import com.hrm.service.DataQualityService;
+import com.hrm.service.DepartmentService;
+import com.hrm.service.EmployeeService;
+import com.hrm.service.PositionService;
 import com.hrm.service.UserService;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -45,6 +54,9 @@ public final class AppContext implements AutoCloseable {
     private final AuthService authService;
     private final UserService userService;
     private final DataQualityService dataQualityService;
+    private final DepartmentService departmentService;
+    private final PositionService positionService;
+    private final EmployeeService employeeService;
 
     private AppContext(AppConfig config) {
         this.config = config;
@@ -57,6 +69,9 @@ public final class AppContext implements AutoCloseable {
         UserDao userDao = new JdbcUserDao(jdbc);
         AuditDao auditDao = new JdbcAuditDao(jdbc, zone);
         DataQualityDao dataQualityDao = new JdbcDataQualityDao(jdbc);
+        DepartmentDao departmentDao = new JdbcDepartmentDao(jdbc);
+        PositionDao positionDao = new JdbcPositionDao(jdbc);
+        EmployeeDao employeeDao = new JdbcEmployeeDao(jdbc);
 
         // security
         this.passwordHasher = new BCryptPasswordHasher(config.getInt("security.bcryptCost", 10));
@@ -68,6 +83,9 @@ public final class AppContext implements AutoCloseable {
                 config.getInt("security.maxFailedLogins", 5), config.getInt("security.lockMinutes", 15));
         this.userService = new UserService(userDao, passwordHasher, passwordPolicy, auditService, jdbc);
         this.dataQualityService = new DataQualityService(dataQualityDao, auditService);
+        this.departmentService = new DepartmentService(departmentDao, employeeDao, auditService);
+        this.positionService = new PositionService(positionDao, auditService);
+        this.employeeService = new EmployeeService(employeeDao, departmentDao, positionDao, auditService, jdbc, clock);
     }
 
     public static AppContext create(AppConfig config) {
@@ -105,6 +123,18 @@ public final class AppContext implements AutoCloseable {
 
     public DataQualityService dataQualityService() {
         return dataQualityService;
+    }
+
+    public DepartmentService departmentService() {
+        return departmentService;
+    }
+
+    public PositionService positionService() {
+        return positionService;
+    }
+
+    public EmployeeService employeeService() {
+        return employeeService;
     }
 
     @Override

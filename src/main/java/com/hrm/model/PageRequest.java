@@ -12,6 +12,7 @@ public record PageRequest(int page, int size, String sort, boolean ascending) {
 
     public PageRequest {
         page = Math.max(page, 1);
+        sort = sort == null || sort.isBlank() ? null : sort.trim();
         size = Math.min(Math.max(size, 1), MAX_SIZE);
     }
 

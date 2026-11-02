@@ -12,7 +12,7 @@
     <link rel="icon" href="${ctx}/assets/img/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="${ctx}/webjars/bootstrap/5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="${ctx}/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="${ctx}/assets/css/app.css">
+    <link rel="stylesheet" href="${ctx}/assets/css/app.css?v=${applicationScope.assetVersion}">
 </head>
 <body class="login-page d-flex align-items-center justify-content-center p-3">
 <main class="w-100 d-flex flex-column align-items-center">
@@ -81,6 +81,6 @@
     <p class="text-body-secondary small mt-3 mb-0">HRM System v<c:out value="${applicationScope.appVersion}"/></p>
 </main>
 <script src="${ctx}/webjars/jquery/3.7.1/dist/jquery.min.js"></script>
-<script src="${ctx}/assets/js/pages/login.js"></script>
+<script src="${ctx}/assets/js/pages/login.js?v=${applicationScope.assetVersion}"></script>
 </body>
 </html>
