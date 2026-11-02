@@ -1,9 +1,18 @@
 package com.hrm.config;
 
+import com.hrm.web.api.AdminApiController;
+import com.hrm.web.api.UserApiController;
+import com.hrm.web.controller.AdminController;
+import com.hrm.web.controller.DashboardController;
 import com.hrm.web.controller.ErrorPageServlet;
 import com.hrm.web.controller.HealthController;
-import com.hrm.web.controller.HomeController;
+import com.hrm.web.controller.LoginController;
+import com.hrm.web.controller.LogoutController;
+import com.hrm.web.controller.ProfileController;
+import com.hrm.web.filter.AuthenticationFilter;
+import com.hrm.web.filter.AuthorizationFilter;
 import com.hrm.web.filter.CharacterEncodingFilter;
+import com.hrm.web.filter.CsrfFilter;
 import com.hrm.web.filter.RequestContextFilter;
 import com.hrm.web.filter.SecurityHeadersFilter;
 import jakarta.servlet.DispatcherType;
@@ -45,24 +54,35 @@ public class AppBootstrap implements ServletContextListener {
         sc.getSessionCookieConfig().setHttpOnly(true);
         sc.getSessionCookieConfig().setSecure(config.getBoolean("security.cookieSecure", false));
 
-        registerFilters(sc);
+        registerFilters(sc, app);
         registerControllers(sc, app);
         log.info("{} {} started (context path '{}')", sc.getAttribute("appName"), sc.getAttribute("appVersion"),
                 sc.getContextPath());
     }
 
-    private void registerFilters(ServletContext sc) {
-        // order matters: request id/MDC first, so every later log line carries it
+    private void registerFilters(ServletContext sc, AppContext app) {
+        // order matters: request id/MDC first, so every later log line carries it;
+        // authentication before CSRF (API-key calls are exempt) before authorization
         filter(sc, "requestContext", new RequestContextFilter(), "/*");
         filter(sc, "characterEncoding", new CharacterEncodingFilter(), "/*");
         filter(sc, "securityHeaders", new SecurityHeadersFilter(), "/*");
+        filter(sc, "authentication", new AuthenticationFilter(app.config().get("security.apiKey", "")), "/*");
+        filter(sc, "csrf", new CsrfFilter(), "/*");
+        filter(sc, "authorization", new AuthorizationFilter(app.accessPolicy()), "/*");
     }
 
     private void registerControllers(ServletContext sc, AppContext app) {
         servlet(sc, "health", new HealthController(app.jdbc(), app.clock(), app.config().get("app.version", "dev")),
                 "/health");
-        servlet(sc, "home", new HomeController(), "");
         servlet(sc, "error", new ErrorPageServlet(), "/error");
+        servlet(sc, "dashboard", new DashboardController(), "");
+        servlet(sc, "login", new LoginController(app.authService(), app.config().getBoolean("ui.showDemoAccounts", false)),
+                "/login");
+        servlet(sc, "logout", new LogoutController(app.auditService()), "/logout");
+        servlet(sc, "profile", new ProfileController(app.authService()), "/profile/*");
+        servlet(sc, "admin", new AdminController(), "/admin/*");
+        servlet(sc, "apiUsers", new UserApiController(app.userService()), "/api/users/*");
+        servlet(sc, "apiAdmin", new AdminApiController(app.dataQualityService(), app.auditService()), "/api/admin/*");
     }
 
     private static void filter(ServletContext sc, String name, Filter filter, String... patterns) {

@@ -9,6 +9,7 @@ package com.hrm.security;
 public final class UserContext {
 
     private static final ThreadLocal<AuthUser> CURRENT = new ThreadLocal<>();
+    private static final ThreadLocal<String> CLIENT_IP = new ThreadLocal<>();
 
     private UserContext() {
     }
@@ -26,7 +27,16 @@ public final class UserContext {
         return user == null ? null : user.getUsername();
     }
 
+    public static void setClientIp(String ip) {
+        CLIENT_IP.set(ip);
+    }
+
+    public static String clientIp() {
+        return CLIENT_IP.get();
+    }
+
     public static void clear() {
         CURRENT.remove();
+        CLIENT_IP.remove();
     }
 }

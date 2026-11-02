@@ -40,9 +40,12 @@ public class ErrorPageServlet extends HttpServlet {
             MDC.clear();
         }
 
+        // messages passed to sendError() come only from our own filters (401/403) – safe to show
+        String filterMessage = (String) req.getAttribute(RequestDispatcher.ERROR_MESSAGE);
         String message = switch (code) {
+            case 401, 403 -> filterMessage != null && !filterMessage.isBlank() ? filterMessage
+                    : (code == 401 ? "Vui lòng đăng nhập." : "Bạn không có quyền truy cập chức năng này.");
             case 404 -> "Không tìm thấy trang hoặc tài nguyên yêu cầu.";
-            case 403 -> "Bạn không có quyền truy cập chức năng này.";
             case 405 -> "Phương thức không được hỗ trợ cho đường dẫn này.";
             default -> code >= 500 ? "Đã xảy ra lỗi hệ thống. Vui lòng thử lại hoặc liên hệ bộ phận IT kèm mã tra cứu."
                     : "Yêu cầu không hợp lệ.";

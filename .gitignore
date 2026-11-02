@@ -27,3 +27,6 @@ import-reports/
 # Secrets – never commit real credentials (use .env.example as template)
 .env
 *.local.properties
+
+# Playwright MCP scratch output
+.playwright-mcp/

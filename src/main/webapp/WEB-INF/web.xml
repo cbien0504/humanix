@@ -32,17 +32,10 @@
         </jsp-property-group>
     </jsp-config>
 
-    <!-- container-level errors (unmapped URLs, uncaught exceptions) → ErrorPageServlet (JSON or HTML) -->
+    <!-- container-level errors (unmapped URLs, sendError() from filters, uncaught exceptions)
+         → ErrorPageServlet, which answers JSON or HTML. A location without error-code/exception-type
+         is the default error page for every status. -->
     <error-page>
-        <error-code>404</error-code>
-        <location>/error</location>
-    </error-page>
-    <error-page>
-        <error-code>403</error-code>
-        <location>/error</location>
-    </error-page>
-    <error-page>
-        <error-code>500</error-code>
         <location>/error</location>
     </error-page>
     <error-page>

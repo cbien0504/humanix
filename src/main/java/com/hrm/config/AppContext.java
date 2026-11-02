@@ -1,7 +1,21 @@
 package com.hrm.config;
 
+import com.hrm.dao.AuditDao;
+import com.hrm.dao.DataQualityDao;
+import com.hrm.dao.UserDao;
+import com.hrm.dao.jdbc.JdbcAuditDao;
+import com.hrm.dao.jdbc.JdbcDataQualityDao;
 import com.hrm.dao.jdbc.JdbcExecutor;
+import com.hrm.dao.jdbc.JdbcUserDao;
+import com.hrm.security.AccessPolicy;
+import com.hrm.security.BCryptPasswordHasher;
+import com.hrm.security.PasswordHasher;
+import com.hrm.security.PasswordPolicy;
 import com.hrm.security.UserContext;
+import com.hrm.service.AuditService;
+import com.hrm.service.AuthService;
+import com.hrm.service.DataQualityService;
+import com.hrm.service.UserService;
 import com.zaxxer.hikari.HikariDataSource;
 
 import java.time.Clock;
@@ -21,12 +35,39 @@ public final class AppContext implements AutoCloseable {
     private final HikariDataSource dataSource;
     private final JdbcExecutor jdbc;
 
+    // security
+    private final PasswordHasher passwordHasher;
+    private final PasswordPolicy passwordPolicy;
+    private final AccessPolicy accessPolicy = new AccessPolicy();
+
+    // services
+    private final AuditService auditService;
+    private final AuthService authService;
+    private final UserService userService;
+    private final DataQualityService dataQualityService;
+
     private AppContext(AppConfig config) {
         this.config = config;
         ZoneId zone = config.getZone("app.timezone", ZoneId.of("Asia/Ho_Chi_Minh"));
         this.clock = Clock.system(zone);
         this.dataSource = DataSourceFactory.create(config);
         this.jdbc = new JdbcExecutor(dataSource, UserContext::currentUsername, config.getLong("db.slowQueryMs", 500));
+
+        // DAOs
+        UserDao userDao = new JdbcUserDao(jdbc);
+        AuditDao auditDao = new JdbcAuditDao(jdbc, zone);
+        DataQualityDao dataQualityDao = new JdbcDataQualityDao(jdbc);
+
+        // security
+        this.passwordHasher = new BCryptPasswordHasher(config.getInt("security.bcryptCost", 10));
+        this.passwordPolicy = new PasswordPolicy(config.getInt("security.passwordMinLength", 8));
+
+        // services
+        this.auditService = new AuditService(auditDao);
+        this.authService = new AuthService(userDao, passwordHasher, passwordPolicy, auditService, clock,
+                config.getInt("security.maxFailedLogins", 5), config.getInt("security.lockMinutes", 15));
+        this.userService = new UserService(userDao, passwordHasher, passwordPolicy, auditService, jdbc);
+        this.dataQualityService = new DataQualityService(dataQualityDao, auditService);
     }
 
     public static AppContext create(AppConfig config) {
@@ -44,6 +85,26 @@ public final class AppContext implements AutoCloseable {
 
     public JdbcExecutor jdbc() {
         return jdbc;
+    }
+
+    public AccessPolicy accessPolicy() {
+        return accessPolicy;
+    }
+
+    public AuditService auditService() {
+        return auditService;
+    }
+
+    public AuthService authService() {
+        return authService;
+    }
+
+    public UserService userService() {
+        return userService;
+    }
+
+    public DataQualityService dataQualityService() {
+        return dataQualityService;
     }
 
     @Override

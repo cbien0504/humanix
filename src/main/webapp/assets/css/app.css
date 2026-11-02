@@ -257,9 +257,16 @@ body {
     align-items: end;
 }
 
-.filter-bar .form-control,
-.filter-bar .form-select {
-    min-width: 160px;
+.filter-bar > .form-control,
+.filter-bar > .form-select {
+    width: auto;
+    flex: 1 1 170px;
+    max-width: 240px;
+}
+
+.filter-bar > input[type=search] {
+    flex: 2 1 260px;
+    max-width: 380px;
 }
 
 .empty-state {

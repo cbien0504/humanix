@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hrm.exception.NotFoundException;
 import com.hrm.exception.UnauthorizedException;
 import com.hrm.exception.ValidationException;
+import com.hrm.model.PageRequest;
 import com.hrm.security.AuthUser;
 import com.hrm.util.Json;
 import jakarta.servlet.ServletException;
@@ -110,6 +111,16 @@ public final class WebContext {
         } catch (DateTimeParseException e) {
             throw new ValidationException(name, "Ngày không hợp lệ (định dạng yyyy-MM-dd).");
         }
+    }
+
+    /** Paging/sorting parameters {@code page, size, sort, dir}. */
+    public PageRequest pageRequest(int defaultSize) {
+        return PageRequest.of(intParam("page"), intParam("size"), param("sort"), param("dir"), defaultSize);
+    }
+
+    public Boolean boolParam(String name) {
+        String v = param(name);
+        return v == null ? null : Boolean.valueOf(v);
     }
 
     public <T> T readJson(Class<T> type) {
