@@ -8,6 +8,7 @@ import com.hrm.dao.EmployeeDao;
 import com.hrm.dao.HolidayDao;
 import com.hrm.dao.LeaveDao;
 import com.hrm.dao.PayrollDao;
+import com.hrm.dao.PerformanceDao;
 import com.hrm.dao.RecruitmentDao;
 import com.hrm.dao.PositionDao;
 import com.hrm.dao.UserDao;
@@ -20,6 +21,7 @@ import com.hrm.dao.jdbc.JdbcExecutor;
 import com.hrm.dao.jdbc.JdbcHolidayDao;
 import com.hrm.dao.jdbc.JdbcLeaveDao;
 import com.hrm.dao.jdbc.JdbcPayrollDao;
+import com.hrm.dao.jdbc.JdbcPerformanceDao;
 import com.hrm.dao.jdbc.JdbcRecruitmentDao;
 import com.hrm.dao.jdbc.JdbcPositionDao;
 import com.hrm.dao.jdbc.JdbcUserDao;
@@ -38,6 +40,7 @@ import com.hrm.service.EmployeeService;
 import com.hrm.service.LeaveService;
 import com.hrm.service.PayrollCalculator;
 import com.hrm.service.PayrollService;
+import com.hrm.service.PerformanceService;
 import com.hrm.service.RecruitmentService;
 import com.hrm.service.PositionService;
 import com.hrm.service.UserService;
@@ -78,6 +81,7 @@ public final class AppContext implements AutoCloseable {
     private final LeaveService leaveService;
     private final PayrollService payrollService;
     private final RecruitmentService recruitmentService;
+    private final PerformanceService performanceService;
 
     private AppContext(AppConfig config) {
         this.config = config;
@@ -98,6 +102,7 @@ public final class AppContext implements AutoCloseable {
         LeaveDao leaveDao = new JdbcLeaveDao(jdbc);
         PayrollDao payrollDao = new JdbcPayrollDao(jdbc);
         RecruitmentDao recruitmentDao = new JdbcRecruitmentDao(jdbc);
+        PerformanceDao performanceDao = new JdbcPerformanceDao(jdbc);
 
         // security
         this.passwordHasher = new BCryptPasswordHasher(config.getInt("security.bcryptCost", 10));
@@ -122,6 +127,7 @@ public final class AppContext implements AutoCloseable {
         this.payrollService = new PayrollService(payrollDao, new PayrollCalculator(), auditService, clock);
         this.recruitmentService = new RecruitmentService(recruitmentDao, departmentDao, positionDao, employeeService,
                 auditService, jdbc, clock);
+        this.performanceService = new PerformanceService(performanceDao, auditService, jdbc);
     }
 
     public static AppContext create(AppConfig config) {
@@ -187,6 +193,10 @@ public final class AppContext implements AutoCloseable {
 
     public RecruitmentService recruitmentService() {
         return recruitmentService;
+    }
+
+    public PerformanceService performanceService() {
+        return performanceService;
     }
 
     @Override
