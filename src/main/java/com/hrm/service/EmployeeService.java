@@ -85,6 +85,13 @@ public class EmployeeService {
         throw new ForbiddenException("Bạn không có quyền xem hồ sơ nhân viên này.");
     }
 
+    /** Lookup by employee code (integration API), same data scope as {@link #get}. */
+    public Employee getByCode(AuthUser user, String code) {
+        Employee e = employeeDao.findByCode(Validator.upper(code))
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy nhân viên mã " + code + "."));
+        return get(user, e.getEmployeeId());
+    }
+
     public List<SalaryChange> salaryHistory(AuthUser user, long id) {
         if (!user.isHrOrAdmin() && !isSelf(user, id)) {
             throw new ForbiddenException("Chỉ bộ phận nhân sự xem được lịch sử lương.");

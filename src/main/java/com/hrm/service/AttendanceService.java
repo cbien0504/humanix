@@ -62,6 +62,16 @@ public class AttendanceService {
     public record MonthView(int year, int month, MonthlyAttendance summary, List<AttendanceRecord> records) {
     }
 
+    /** Outcome of one element of a bulk upload. */
+    public record BulkItemResult(int index, String employeeCode, LocalDate workDate, boolean ok, String status, String message) {
+    }
+
+    /** Outcome of a bulk upload: every element is processed independently. */
+    public record BulkResult(int received, int saved, int failed, List<BulkItemResult> results) {
+    }
+
+    public static final int MAX_BULK = 1000;
+
     public Today today(AuthUser user) {
         long employeeId = requireEmployee(user);
         LocalDateTime now = now();
@@ -183,6 +193,34 @@ public class AttendanceService {
             audit.record("ATTENDANCE_SAVED", "Attendance", id, employee.getEmployeeCode() + " " + form.workDate() + " " + status);
         }
         return attendanceDao.findById(id).orElseThrow();
+    }
+
+    /**
+     * UC-71: time-clock / external system upload. Elements are independent – one bad punch does
+     * not reject the others – and the response lists the result of every element.
+     */
+    public BulkResult saveBatch(List<AttendanceForm> items) {
+        if (items == null || items.isEmpty()) {
+            throw new com.hrm.exception.ValidationException("body", "Danh sách chấm công rỗng.");
+        }
+        if (items.size() > MAX_BULK) {
+            throw new com.hrm.exception.ValidationException("body", "Tối đa " + MAX_BULK + " bản ghi mỗi lần gửi.");
+        }
+        List<BulkItemResult> results = new java.util.ArrayList<>(items.size());
+        int saved = 0;
+        for (int i = 0; i < items.size(); i++) {
+            AttendanceForm item = items.get(i);
+            try {
+                AttendanceRecord r = save(item, "API");
+                results.add(new BulkItemResult(i, r.getEmployeeCode(), r.getWorkDate(), true, r.getStatus().name(), null));
+                saved++;
+            } catch (com.hrm.exception.AppException e) {
+                results.add(new BulkItemResult(i, item == null ? null : item.employeeCode(), item == null ? null : item.workDate(),
+                        false, null, e.getMessage()));
+            }
+        }
+        audit.record("ATTENDANCE_IMPORTED", "Attendance", null, saved + "/" + items.size() + " bản ghi");
+        return new BulkResult(items.size(), saved, items.size() - saved, results);
     }
 
     public void delete(long attendanceId) {

@@ -43,8 +43,7 @@ public class JobApiController extends BaseController {
     }
 
     private void search(WebContext ctx) throws IOException {
-        String status = ctx.param("status");
-        ctx.json(service.searchJobs(ctx.requireUser(), ctx.param("keyword"), status == null ? null : JobStatus.valueOf(status),
+        ctx.json(service.searchJobs(ctx.requireUser(), ctx.param("keyword"), ctx.enumParam("status", JobStatus.class),
                 ctx.longParam("departmentId"), ctx.pageRequest(10)));
     }
 }

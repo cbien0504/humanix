@@ -47,9 +47,8 @@ public class CandidateApiController extends BaseController {
     }
 
     private void search(WebContext ctx) throws IOException {
-        String stage = ctx.param("stage");
         ctx.json(service.searchCandidates(ctx.requireUser(), ctx.longParam("jobId"),
-                stage == null ? null : CandidateStage.valueOf(stage), ctx.param("keyword"), ctx.pageRequest(20)));
+                ctx.enumParam("stage", CandidateStage.class), ctx.param("keyword"), ctx.pageRequest(20)));
     }
 
     private static WebContext hrOnly(WebContext ctx) {

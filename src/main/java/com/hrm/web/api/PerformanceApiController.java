@@ -50,9 +50,8 @@ public class PerformanceApiController extends BaseController {
             r.get("/my", ctx -> ctx.json(service.myReviews(ctx.requireUser(), ctx.pageRequest(20))))
              .get("/criteria", ctx -> ctx.json(service.criteria()))
              .get("/", ctx -> {
-                 String status = ctx.param("status");
                  ctx.json(service.reviews(ctx.requireUser(), ctx.longParam("cycleId"),
-                         status == null ? null : ReviewStatus.valueOf(status), ctx.param("keyword"), ctx.pageRequest(20)));
+                         ctx.enumParam("status", ReviewStatus.class), ctx.param("keyword"), ctx.pageRequest(20)));
              })
              .get("/{id}", ctx -> ctx.json(service.view(ctx.requireUser(), ctx.pathId("id"))))
              .post("/{id}/self", ctx -> ctx.json(service.submitSelf(ctx.requireUser(), ctx.pathId("id"),

@@ -39,6 +39,7 @@ import com.hrm.service.AuthService;
 import com.hrm.service.DashboardService;
 import com.hrm.service.DataQualityService;
 import com.hrm.service.DepartmentService;
+import com.hrm.service.EmployeeImportService;
 import com.hrm.service.EmployeeService;
 import com.hrm.service.LeaveService;
 import com.hrm.service.PayrollCalculator;
@@ -88,6 +89,7 @@ public final class AppContext implements AutoCloseable {
     private final PerformanceService performanceService;
     private final ReportService reportService;
     private final DashboardService dashboardService;
+    private final EmployeeImportService importService;
 
     private AppContext(AppConfig config) {
         this.config = config;
@@ -138,6 +140,7 @@ public final class AppContext implements AutoCloseable {
         this.reportService = new ReportService(reportDao, departmentDao, employeeDao, auditService, clock);
         this.dashboardService = new DashboardService(reportDao, attendanceDao, leaveDao, payrollDao, performanceDao,
                 recruitmentDao, clock);
+        this.importService = new EmployeeImportService(employeeService, employeeDao, departmentDao, positionDao, jdbc, auditService);
     }
 
     public static AppContext create(AppConfig config) {
@@ -215,6 +218,10 @@ public final class AppContext implements AutoCloseable {
 
     public DashboardService dashboardService() {
         return dashboardService;
+    }
+
+    public EmployeeImportService importService() {
+        return importService;
     }
 
     @Override

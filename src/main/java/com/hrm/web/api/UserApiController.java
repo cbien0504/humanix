@@ -32,8 +32,7 @@ public class UserApiController extends BaseController {
     }
 
     private void search(WebContext ctx) throws IOException {
-        String role = ctx.param("role");
-        ctx.json(userService.search(ctx.param("keyword"), role == null ? null : Role.valueOf(role),
+        ctx.json(userService.search(ctx.param("keyword"), ctx.enumParam("role", Role.class),
                 ctx.boolParam("active"), ctx.pageRequest(10)));
     }
 }

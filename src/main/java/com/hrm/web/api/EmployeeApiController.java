@@ -16,7 +16,7 @@ import java.util.Map;
  * systems (X-API-Key). See docs/api.md.
  * <pre>
  * GET    /api/employees?keyword=&departmentId=&positionId=&status=&page=&size=&sort=&dir=
- * GET    /api/employees/{id}
+ * GET    /api/employees/{id}             GET /api/employees/by-code/{code}
  * GET    /api/employees/{id}/salary-history
  * GET    /api/employees/options          GET /api/employees/next-code
  * POST   /api/employees                  → 201 + Location
@@ -39,6 +39,7 @@ public class EmployeeApiController extends BaseController {
         r.get("/", this::search)
          .get("/options", ctx -> ctx.json(employeeService.options()))
          .get("/next-code", ctx -> ctx.json(Map.of("employeeCode", employeeService.nextCode())))
+         .get("/by-code/{code}", ctx -> ctx.json(employeeService.getByCode(ctx.requireUser(), ctx.pathVar("code"))))
          .get("/{id}", ctx -> ctx.json(employeeService.get(ctx.requireUser(), ctx.pathId("id"))))
          .get("/{id}/salary-history", ctx -> ctx.json(employeeService.salaryHistory(ctx.requireUser(), ctx.pathId("id"))))
          .post("/", this::create)
@@ -50,9 +51,8 @@ public class EmployeeApiController extends BaseController {
     }
 
     private void search(WebContext ctx) throws IOException {
-        String status = ctx.param("status");
         EmployeeFilter filter = new EmployeeFilter(ctx.param("keyword"), ctx.longParam("departmentId"),
-                ctx.longParam("positionId"), status == null ? null : EmployeeStatus.valueOf(status), null);
+                ctx.longParam("positionId"), ctx.enumParam("status", EmployeeStatus.class), null);
         ctx.json(employeeService.search(ctx.requireUser(), filter, ctx.pageRequest(10)));
     }
 

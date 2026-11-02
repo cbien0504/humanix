@@ -1,0 +1,13 @@
+employee_code,full_name,gender,date_of_birth,email,phone,national_id,tax_code,address,department_code,position_code,manager_code,hire_date,status,base_salary,allowance,dependents,bank_name,bank_account
+EMP0201,Hồ Thanh Tâm,M,1994-04-04,tam.ht@example.com,0912000201,,,,IT,DEV,EMP0013,2026-11-16,PROBATION,15000000,1000000,0,,
+EMP0201,Bản Ghi Trùng Mã,F,1995-05-05,trung.ma@example.com,0912000202,,,,IT,DEV,,2026-11-16,PROBATION,15000000,0,0,,
+EMP0001,Trùng Mã Hệ Thống,M,1990-01-01,trung.he.thong@example.com,,,,,IT,DEV,,2026-11-16,,15000000,0,0,,
+EMP0204,Email Và Lương Sai,M,1993-03-03,abc@,0912000204,,,,IT,DEV,,2026-11-16,,-5000000,0,0,,
+EMP0205,Phòng Ban Không Có,F,1996-06-06,pb.khong.co@example.com,,,,,XYZ,ABC,,2026-11-16,,15000000,0,0,,
+EMP0206,Lương Ngoài Khung,M,1991-01-01,ngoai.khung@example.com,,,,,IT,DEV,,2026-11-16,,90000000,0,0,,
+EMP0207,Ngày Và Giới Tính Sai,X,31/02/1990,ngay.sai@example.com,,,,,IT,DEV,,2026-11-16,,15000000,0,0,,
+EMP0208,Quản Lý Không Tồn Tại,M,1992-02-02,ql.khong@example.com,,,,,IT,DEV,EMP9999,2026-11-16,,15000000,0,0,,
+EMP0209,Email Đã Tồn Tại,F,1990-09-09,hung.nv@example.com,,,,,IT,DEV,,2026-11-16,,15000000,0,0,,
+EMP0210,Chưa Đủ Tuổi,M,2015-01-01,chua.du.tuoi@example.com,,,,,IT,INTERN,,2026-11-16,,4000000,0,0,,
+EMP0211,SĐT Và CCCD Sai,F,1997-07-07,sdt.sai@example.com,12345,00109700012,,,IT,DEV,,2026-11-16,,15000000,0,0,,
+EMP0212,,M,1997-07-07,thieu.ten@example.com,,,,,IT,DEV,,2026-11-16,,15000000,0,0,,

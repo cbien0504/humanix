@@ -55,8 +55,7 @@ public class LeaveApiController extends BaseController {
     }
 
     private LeaveFilter filter(WebContext ctx) {
-        String status = ctx.param("status");
-        return new LeaveFilter(ctx.param("keyword"), status == null ? null : LeaveStatus.valueOf(status),
+        return new LeaveFilter(ctx.param("keyword"), ctx.enumParam("status", LeaveStatus.class),
                 ctx.longParam("leaveTypeId"), ctx.intParam("year"), null, null);
     }
 

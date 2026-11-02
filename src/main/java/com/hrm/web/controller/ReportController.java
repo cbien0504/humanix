@@ -39,9 +39,8 @@ public class ReportController extends BaseController {
     }
 
     private void employees(WebContext ctx) throws IOException {
-        String status = ctx.param("status");
         EmployeeFilter filter = new EmployeeFilter(ctx.param("keyword"), ctx.longParam("departmentId"), ctx.longParam("positionId"),
-                status == null ? null : EmployeeStatus.valueOf(status), null);
+                ctx.enumParam("status", EmployeeStatus.class), null);
         Downloads.report(ctx, reportService.employeeList(filter), "danh-sach-nhan-vien-" + LocalDate.now());
     }
 }

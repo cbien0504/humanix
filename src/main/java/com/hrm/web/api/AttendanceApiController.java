@@ -20,6 +20,7 @@ import java.time.format.DateTimeParseException;
  * GET  /api/attendance/my?month=2026-10 my month: summary + records
  * GET  /api/attendance?from=&to=&departmentId=&employeeId=&status=&keyword=&page=&size=
  * POST /api/attendance                  create/correct one day (HR, time clock)
+ * POST /api/attendance/bulk             up to 1000 punches, per-element result (time clock)
  * DELETE /api/attendance/{id}           (HR)
  * </pre>
  */
@@ -41,6 +42,7 @@ public class AttendanceApiController extends BaseController {
          .get("/my", ctx -> ctx.json(attendanceService.myMonth(ctx.requireUser(), month(ctx))))
          .get("/", this::search)
          .post("/", this::save)
+         .post("/bulk", ctx -> ctx.json(attendanceService.saveBatch(java.util.Arrays.asList(ctx.readJson(AttendanceForm[].class)))))
          .delete("/{id}", ctx -> {
              attendanceService.delete(ctx.pathId("id"));
              ctx.noContent();
@@ -48,10 +50,9 @@ public class AttendanceApiController extends BaseController {
     }
 
     private void search(WebContext ctx) throws IOException {
-        String status = ctx.param("status");
         AttendanceFilter filter = new AttendanceFilter(ctx.param("keyword"), ctx.longParam("departmentId"),
                 ctx.longParam("employeeId"), ctx.dateParam("from"), ctx.dateParam("to"),
-                status == null ? null : AttendanceStatus.valueOf(status), null);
+                ctx.enumParam("status", AttendanceStatus.class), null);
         ctx.json(attendanceService.search(ctx.requireUser(), filter, ctx.pageRequest(20)));
     }
 

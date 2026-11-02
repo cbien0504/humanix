@@ -1,6 +1,8 @@
 package com.hrm.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.hrm.exception.NotFoundException;
 import com.hrm.exception.UnauthorizedException;
 import com.hrm.exception.ValidationException;
@@ -19,7 +21,11 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -113,6 +119,20 @@ public final class WebContext {
         }
     }
 
+    /** Enum parameter by constant name; an unknown value is a 400 listing the allowed ones (not a 500). */
+    public <E extends Enum<E>> E enumParam(String name, Class<E> type) {
+        String v = param(name);
+        if (v == null) {
+            return null;
+        }
+        try {
+            return Enum.valueOf(type, v.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            throw new ValidationException(name, "Giá trị không hợp lệ. Cho phép: "
+                    + String.join(" | ", Arrays.stream(type.getEnumConstants()).map(Enum::name).toList()) + ".");
+        }
+    }
+
     /** Paging/sorting parameters {@code page, size, sort, dir}. */
     public PageRequest pageRequest(int defaultSize) {
         return PageRequest.of(intParam("page"), intParam("size"), param("sort"), param("dir"), defaultSize);
@@ -130,11 +150,52 @@ public final class WebContext {
                 throw new ValidationException("body", "Thiếu dữ liệu gửi lên.");
             }
             return value;
+        } catch (MismatchedInputException e) {
+            String field = jsonPath(e);
+            if (field.isEmpty()) {
+                throw new ValidationException("body", "Dữ liệu gửi lên không đúng cấu trúc.");
+            }
+            throw new ValidationException(field, "Trường \"" + field + "\" không đúng định dạng" + expected(e.getTargetType()) + ".");
         } catch (JsonProcessingException e) {
             throw new ValidationException("body", "Dữ liệu gửi lên không đúng định dạng JSON.");
         } catch (IOException e) {
             throw new ValidationException("body", "Không đọc được dữ liệu gửi lên.");
         }
+    }
+
+    /** "workDate" for an object body, "[3].workDate" for an array – tells API clients which value to fix. */
+    private static String jsonPath(JsonMappingException e) {
+        StringBuilder sb = new StringBuilder();
+        for (JsonMappingException.Reference ref : e.getPath()) {
+            if (ref.getFieldName() != null) {
+                sb.append(sb.isEmpty() ? "" : ".").append(ref.getFieldName());
+            } else if (ref.getIndex() >= 0) {
+                sb.append('[').append(ref.getIndex()).append(']');
+            }
+        }
+        return sb.toString();
+    }
+
+    private static String expected(Class<?> type) {
+        if (type == null) {
+            return "";
+        }
+        if (type == LocalDate.class) {
+            return " (yyyy-MM-dd)";
+        }
+        if (type == LocalTime.class) {
+            return " (HH:mm)";
+        }
+        if (type == LocalDateTime.class) {
+            return " (yyyy-MM-ddTHH:mm:ss)";
+        }
+        if (type.isEnum()) {
+            return " (" + String.join(" | ", Arrays.stream(type.getEnumConstants()).map(String::valueOf).toList()) + ")";
+        }
+        if (Number.class.isAssignableFrom(type) || (type.isPrimitive() && type != boolean.class)) {
+            return " (số)";
+        }
+        return "";
     }
 
     // ------------------------------------------------------------ output

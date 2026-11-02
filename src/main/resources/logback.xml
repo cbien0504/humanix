@@ -5,7 +5,8 @@
     so one id shown on an error page finds the whole request in the log.
   * hrm.log    – application log, rolled daily / at 20 MB, 30 days kept
   * audit.log  – security-relevant actions (logger "AUDIT")
-  Level and directory can be changed without rebuilding: HRM_LOG_LEVEL, HRM_LOG_DIR.
+  Level and directory can be changed without rebuilding: HRM_LOG_LEVEL, HRM_LOG_DIR,
+  HRM_CONSOLE_LEVEL (console threshold – the CLI import tool sets WARN to keep its report readable).
 -->
 <configuration scan="false">
     <property name="LOG_DIR" value="${HRM_LOG_DIR:-${catalina.base:-.}/logs}"/>
@@ -13,6 +14,9 @@
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{requestId:-system}] [%X{user:--}] %logger{36} - %msg%n"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${HRM_CONSOLE_LEVEL:-INFO}</level>
+        </filter>
         <encoder>
             <pattern>${PATTERN}</pattern>
             <charset>UTF-8</charset>

@@ -18,6 +18,7 @@ import com.hrm.web.controller.DashboardController;
 import com.hrm.web.controller.EmployeeController;
 import com.hrm.web.controller.ErrorPageServlet;
 import com.hrm.web.controller.HealthController;
+import com.hrm.web.controller.ImportController;
 import com.hrm.web.controller.LoginController;
 import com.hrm.web.controller.LogoutController;
 import com.hrm.web.controller.PayrollController;
@@ -35,6 +36,7 @@ import com.hrm.web.filter.SecurityHeadersFilter;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterRegistration;
+import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
@@ -132,6 +134,9 @@ public class AppBootstrap implements ServletContextListener {
         servlet(sc, "reports", new ReportController(app.reportService(), app.departmentService()), "/reports/*");
         servlet(sc, "apiReports", ReportApiController.reports(app.reportService()), "/api/reports/*");
         servlet(sc, "apiDashboard", ReportApiController.dashboard(app.dashboardService()), "/api/dashboard/*");
+        // data import (multipart: 5 MB per file)
+        servlet(sc, "import", new ImportController(app.importService()), "/import/*")
+                .setMultipartConfig(new MultipartConfigElement(null, 5L * 1024 * 1024, 6L * 1024 * 1024, 512 * 1024));
     }
 
     private static void filter(ServletContext sc, String name, Filter filter, String... patterns) {

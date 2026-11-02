@@ -1,0 +1,6 @@
+employee_code,full_name,gender,date_of_birth,email,phone,national_id,tax_code,address,department_code,position_code,manager_code,hire_date,status,base_salary,allowance,dependents,bank_name,bank_account
+EMP0101,Phan Hoàng Anh,M,1992-03-15,anh.ph@example.com,0911000101,001092000101,8011000101,"15 Đội Cấn, Ba Đình, Hà Nội",IT,TL,EMP0011,2026-11-16,PROBATION,30000000,2000000,1,Vietcombank,0011000777101
+EMP0102,Lê Thu Hà,F,1998-07-02,ha.lt@example.com,0911000102,001198000102,,"9 Kim Mã, Ba Đình, Hà Nội",IT,DEV,EMP0101,2026-11-16,PROBATION,18000000,1000000,0,Techcombank,19033300000102
+EMP0103,Ngô Minh Đức,Nam,15/09/1996,duc.nm@example.com,0911000103,,,,SALES,SALES_EXEC,EMP0023,16/11/2026,Thử việc,12.000.000,2.000.000,0,BIDV,21510000000103
+EMP0104,Trịnh Bảo Ngọc,Nữ,1999-12-24,ngoc.tb@example.com,+84911000104,,,,MKT,MKT_SPEC,EMP0030,2026-11-16,PROBATION,13000000,1000000,0,MB Bank,0350100000104
+EMP0105,Vương Quốc Khánh,M,1990-01-30,khanh.vq@example.com,0911000105,001090000105,8011000105,,FIN,ACCT,EMP0007,2026-11-16,ACTIVE,20000000,1500000,2,VPBank,10220000105
