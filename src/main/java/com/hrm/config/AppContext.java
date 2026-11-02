@@ -1,16 +1,22 @@
 package com.hrm.config;
 
+import com.hrm.dao.AttendanceDao;
 import com.hrm.dao.AuditDao;
 import com.hrm.dao.DataQualityDao;
 import com.hrm.dao.DepartmentDao;
 import com.hrm.dao.EmployeeDao;
+import com.hrm.dao.HolidayDao;
+import com.hrm.dao.LeaveDao;
 import com.hrm.dao.PositionDao;
 import com.hrm.dao.UserDao;
+import com.hrm.dao.jdbc.JdbcAttendanceDao;
 import com.hrm.dao.jdbc.JdbcAuditDao;
 import com.hrm.dao.jdbc.JdbcDataQualityDao;
 import com.hrm.dao.jdbc.JdbcDepartmentDao;
 import com.hrm.dao.jdbc.JdbcEmployeeDao;
 import com.hrm.dao.jdbc.JdbcExecutor;
+import com.hrm.dao.jdbc.JdbcHolidayDao;
+import com.hrm.dao.jdbc.JdbcLeaveDao;
 import com.hrm.dao.jdbc.JdbcPositionDao;
 import com.hrm.dao.jdbc.JdbcUserDao;
 import com.hrm.security.AccessPolicy;
@@ -18,16 +24,20 @@ import com.hrm.security.BCryptPasswordHasher;
 import com.hrm.security.PasswordHasher;
 import com.hrm.security.PasswordPolicy;
 import com.hrm.security.UserContext;
+import com.hrm.service.AttendancePolicy;
+import com.hrm.service.AttendanceService;
 import com.hrm.service.AuditService;
 import com.hrm.service.AuthService;
 import com.hrm.service.DataQualityService;
 import com.hrm.service.DepartmentService;
 import com.hrm.service.EmployeeService;
+import com.hrm.service.LeaveService;
 import com.hrm.service.PositionService;
 import com.hrm.service.UserService;
 import com.zaxxer.hikari.HikariDataSource;
 
 import java.time.Clock;
+import java.time.LocalTime;
 import java.time.ZoneId;
 
 /**
@@ -57,6 +67,8 @@ public final class AppContext implements AutoCloseable {
     private final DepartmentService departmentService;
     private final PositionService positionService;
     private final EmployeeService employeeService;
+    private final AttendanceService attendanceService;
+    private final LeaveService leaveService;
 
     private AppContext(AppConfig config) {
         this.config = config;
@@ -72,6 +84,9 @@ public final class AppContext implements AutoCloseable {
         DepartmentDao departmentDao = new JdbcDepartmentDao(jdbc);
         PositionDao positionDao = new JdbcPositionDao(jdbc);
         EmployeeDao employeeDao = new JdbcEmployeeDao(jdbc);
+        HolidayDao holidayDao = new JdbcHolidayDao(jdbc);
+        AttendanceDao attendanceDao = new JdbcAttendanceDao(jdbc);
+        LeaveDao leaveDao = new JdbcLeaveDao(jdbc);
 
         // security
         this.passwordHasher = new BCryptPasswordHasher(config.getInt("security.bcryptCost", 10));
@@ -86,6 +101,13 @@ public final class AppContext implements AutoCloseable {
         this.departmentService = new DepartmentService(departmentDao, employeeDao, auditService);
         this.positionService = new PositionService(positionDao, auditService);
         this.employeeService = new EmployeeService(employeeDao, departmentDao, positionDao, auditService, jdbc, clock);
+        AttendancePolicy attendancePolicy = new AttendancePolicy(
+                config.getTime("attendance.workStart", LocalTime.of(8, 30)),
+                config.getInt("attendance.lateGraceMinutes", 5),
+                config.getInt("attendance.halfDayMaxHours", 4));
+        this.attendanceService = new AttendanceService(attendanceDao, employeeDao, leaveDao, attendancePolicy, auditService, clock);
+        this.leaveService = new LeaveService(leaveDao, employeeDao, holidayDao, auditService, clock,
+                config.getInt("leave.maxPastDays", 30));
     }
 
     public static AppContext create(AppConfig config) {
@@ -135,6 +157,14 @@ public final class AppContext implements AutoCloseable {
 
     public EmployeeService employeeService() {
         return employeeService;
+    }
+
+    public AttendanceService attendanceService() {
+        return attendanceService;
+    }
+
+    public LeaveService leaveService() {
+        return leaveService;
     }
 
     @Override

@@ -2,10 +2,13 @@ package com.hrm.config;
 
 import com.hrm.web.Formats;
 import com.hrm.web.api.AdminApiController;
+import com.hrm.web.api.AttendanceApiController;
+import com.hrm.web.api.LeaveApiController;
 import com.hrm.web.api.DepartmentApiController;
 import com.hrm.web.api.EmployeeApiController;
 import com.hrm.web.api.UserApiController;
 import com.hrm.web.controller.AdminController;
+import com.hrm.web.controller.AttendanceController;
 import com.hrm.web.controller.DashboardController;
 import com.hrm.web.controller.EmployeeController;
 import com.hrm.web.controller.ErrorPageServlet;
@@ -99,6 +102,11 @@ public class AppBootstrap implements ServletContextListener {
         servlet(sc, "apiEmployees", new EmployeeApiController(app.employeeService()), "/api/employees/*");
         servlet(sc, "apiDepartments", DepartmentApiController.departments(app.departmentService()), "/api/departments/*");
         servlet(sc, "apiPositions", DepartmentApiController.positions(app.positionService()), "/api/positions/*");
+        // attendance & leave
+        servlet(sc, "attendancePages", AttendanceController.attendance(app.departmentService()), "/attendance/*");
+        servlet(sc, "leavePages", AttendanceController.leave(app.leaveService()), "/leave/*");
+        servlet(sc, "apiAttendance", new AttendanceApiController(app.attendanceService()), "/api/attendance/*");
+        servlet(sc, "apiLeave", new LeaveApiController(app.leaveService(), app.clock()), "/api/leave-requests/*");
     }
 
     private static void filter(ServletContext sc, String name, Filter filter, String... patterns) {

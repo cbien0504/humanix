@@ -49,6 +49,10 @@ public final class AccessPolicy {
         // attendance & leave (personal endpoints are open to every signed-in employee)
         allow("/attendance/manage", ANY, Role.HR, Role.MANAGER);
         allow("/leave/approvals", ANY, Role.HR, Role.MANAGER);
+        allow("/api/attendance/check-in", ANY, Role.EMPLOYEE);
+        allow("/api/attendance/check-out", ANY, Role.EMPLOYEE);
+        allow("/api/attendance", WRITE, Role.HR);
+        allow("/api/leave-requests/balances/init", ANY, Role.HR);
         // payroll
         allow("/payroll/my", ANY, Role.EMPLOYEE);
         allow("/api/payroll/my", ANY, Role.EMPLOYEE);

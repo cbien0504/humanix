@@ -176,13 +176,13 @@ body {
     font-size: 1.35rem;
 }
 
-.stat-card .stat-value {
+.stat-value {
     font-size: 1.6rem;
     font-weight: 700;
     line-height: 1.1;
 }
 
-.stat-card .stat-label {
+.stat-label {
     color: var(--hrm-text-muted);
     font-size: .82rem;
 }
