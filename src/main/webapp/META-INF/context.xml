@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+    <!-- session cookie is not sent on cross-site POSTs (CSRF defence in depth) -->
+    <CookieProcessor className="org.apache.tomcat.util.http.Rfc6265CookieProcessor" sameSiteCookies="lax"/>
+    <!-- do not persist sessions across restarts -->
+    <Manager pathname=""/>
+</Context>
