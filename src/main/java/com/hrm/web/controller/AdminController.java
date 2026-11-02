@@ -12,6 +12,7 @@ public class AdminController extends BaseController {
     protected void routes(Router r) {
         r.get("/users", ctx -> ctx.render("admin/users"))
          .get("/audit", ctx -> ctx.render("admin/audit"))
-         .get("/data-quality", ctx -> ctx.render("admin/data-quality"));
+         .get("/data-quality", ctx -> ctx.render("admin/data-quality"))
+         .get("/settings", ctx -> ctx.render("admin/settings"));
     }
 }

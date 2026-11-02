@@ -7,6 +7,7 @@ import com.hrm.dao.DepartmentDao;
 import com.hrm.dao.EmployeeDao;
 import com.hrm.dao.HolidayDao;
 import com.hrm.dao.LeaveDao;
+import com.hrm.dao.PayrollDao;
 import com.hrm.dao.PositionDao;
 import com.hrm.dao.UserDao;
 import com.hrm.dao.jdbc.JdbcAttendanceDao;
@@ -17,6 +18,7 @@ import com.hrm.dao.jdbc.JdbcEmployeeDao;
 import com.hrm.dao.jdbc.JdbcExecutor;
 import com.hrm.dao.jdbc.JdbcHolidayDao;
 import com.hrm.dao.jdbc.JdbcLeaveDao;
+import com.hrm.dao.jdbc.JdbcPayrollDao;
 import com.hrm.dao.jdbc.JdbcPositionDao;
 import com.hrm.dao.jdbc.JdbcUserDao;
 import com.hrm.security.AccessPolicy;
@@ -32,6 +34,8 @@ import com.hrm.service.DataQualityService;
 import com.hrm.service.DepartmentService;
 import com.hrm.service.EmployeeService;
 import com.hrm.service.LeaveService;
+import com.hrm.service.PayrollCalculator;
+import com.hrm.service.PayrollService;
 import com.hrm.service.PositionService;
 import com.hrm.service.UserService;
 import com.zaxxer.hikari.HikariDataSource;
@@ -69,6 +73,7 @@ public final class AppContext implements AutoCloseable {
     private final EmployeeService employeeService;
     private final AttendanceService attendanceService;
     private final LeaveService leaveService;
+    private final PayrollService payrollService;
 
     private AppContext(AppConfig config) {
         this.config = config;
@@ -87,6 +92,7 @@ public final class AppContext implements AutoCloseable {
         HolidayDao holidayDao = new JdbcHolidayDao(jdbc);
         AttendanceDao attendanceDao = new JdbcAttendanceDao(jdbc);
         LeaveDao leaveDao = new JdbcLeaveDao(jdbc);
+        PayrollDao payrollDao = new JdbcPayrollDao(jdbc);
 
         // security
         this.passwordHasher = new BCryptPasswordHasher(config.getInt("security.bcryptCost", 10));
@@ -108,6 +114,7 @@ public final class AppContext implements AutoCloseable {
         this.attendanceService = new AttendanceService(attendanceDao, employeeDao, leaveDao, attendancePolicy, auditService, clock);
         this.leaveService = new LeaveService(leaveDao, employeeDao, holidayDao, auditService, clock,
                 config.getInt("leave.maxPastDays", 30));
+        this.payrollService = new PayrollService(payrollDao, new PayrollCalculator(), auditService, clock);
     }
 
     public static AppContext create(AppConfig config) {
@@ -165,6 +172,10 @@ public final class AppContext implements AutoCloseable {
 
     public LeaveService leaveService() {
         return leaveService;
+    }
+
+    public PayrollService payrollService() {
+        return payrollService;
     }
 
     @Override

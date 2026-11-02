@@ -56,6 +56,8 @@ public final class AccessPolicy {
         // payroll
         allow("/payroll/my", ANY, Role.EMPLOYEE);
         allow("/api/payroll/my", ANY, Role.EMPLOYEE);
+        allow("/payroll/payslip", ANY, Role.EMPLOYEE);          // owner or HR – checked by PayrollService
+        allow("/api/payroll/payslips", ANY, Role.EMPLOYEE);
         allow("/api/payroll/simulate", ANY, Role.EMPLOYEE, Role.HR);
         allow("/payroll", ANY, Role.HR);
         allow("/api/payroll", ANY, Role.HR);
