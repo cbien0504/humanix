@@ -1,6 +1,7 @@
 package com.hrm.web.api;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.hrm.exception.ValidationException;
 import com.hrm.service.PayrollService;
 import com.hrm.util.Json;
 import com.hrm.web.BaseController;
@@ -61,7 +62,7 @@ public class PayrollApiController extends BaseController {
         try {
             changes = Json.mapper().readValue(ctx.request().getInputStream(), new TypeReference<Map<String, BigDecimal>>() { });
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            throw new com.hrm.exception.ValidationException("body", "Dữ liệu tham số không hợp lệ.");
+            throw new ValidationException("body", "Dữ liệu tham số không hợp lệ.");
         }
         ctx.json(payrollService.updateSettings(changes));
     }

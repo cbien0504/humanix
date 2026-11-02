@@ -1,8 +1,10 @@
 package com.hrm.web.api;
 
+import com.hrm.exception.ValidationException;
 import com.hrm.model.AttendanceFilter;
 import com.hrm.model.AttendanceForm;
 import com.hrm.model.AttendanceStatus;
+import com.hrm.security.AuthUser;
 import com.hrm.service.AttendanceService;
 import com.hrm.web.BaseController;
 import com.hrm.web.Router;
@@ -11,6 +13,7 @@ import com.hrm.web.WebContext;
 import java.io.IOException;
 import java.time.YearMonth;
 import java.time.format.DateTimeParseException;
+import java.util.Arrays;
 
 /**
  * REST resource {@code /api/attendance}.
@@ -42,7 +45,7 @@ public class AttendanceApiController extends BaseController {
          .get("/my", ctx -> ctx.json(attendanceService.myMonth(ctx.requireUser(), month(ctx))))
          .get("/", this::search)
          .post("/", this::save)
-         .post("/bulk", ctx -> ctx.json(attendanceService.saveBatch(java.util.Arrays.asList(ctx.readJson(AttendanceForm[].class)))))
+         .post("/bulk", ctx -> ctx.json(attendanceService.saveBatch(Arrays.asList(ctx.readJson(AttendanceForm[].class)))))
          .delete("/{id}", ctx -> {
              attendanceService.delete(ctx.pathId("id"));
              ctx.noContent();
@@ -57,7 +60,7 @@ public class AttendanceApiController extends BaseController {
     }
 
     private void save(WebContext ctx) throws IOException {
-        boolean apiClient = com.hrm.security.AuthUser.API_CLIENT.equals(ctx.requireUser().getUsername());
+        boolean apiClient = AuthUser.API_CLIENT.equals(ctx.requireUser().getUsername());
         ctx.json(attendanceService.save(ctx.readJson(AttendanceForm.class), apiClient ? "API" : "MANUAL"));
     }
 
@@ -66,7 +69,7 @@ public class AttendanceApiController extends BaseController {
         try {
             return m == null ? null : YearMonth.parse(m);
         } catch (DateTimeParseException e) {
-            throw new com.hrm.exception.ValidationException("month", "Tháng không hợp lệ (yyyy-MM).");
+            throw new ValidationException("month", "Tháng không hợp lệ (yyyy-MM).");
         }
     }
 }

@@ -13,6 +13,7 @@ import com.hrm.model.StageChange;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -152,7 +153,7 @@ public class JdbcRecruitmentDao implements RecruitmentDao {
     }
 
     @Override
-    public void updateJobStatus(long id, JobStatus status, java.time.LocalDate openDateIfMissing, java.time.LocalDate closeDate) {
+    public void updateJobStatus(long id, JobStatus status, LocalDate openDateIfMissing, LocalDate closeDate) {
         jdbc.update("""
                 UPDATE dbo.JobPostings SET Status = ?, OpenDate = COALESCE(OpenDate, ?), CloseDate = COALESCE(?, CloseDate),
                     UpdatedAt = SYSUTCDATETIME()

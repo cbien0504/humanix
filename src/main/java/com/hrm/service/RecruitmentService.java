@@ -26,6 +26,7 @@ import com.hrm.util.Validator;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -128,7 +129,7 @@ public class RecruitmentService {
         JobPosting job = job(user, jobId);
         Map<CandidateStage, List<Candidate>> columns = new LinkedHashMap<>();
         for (CandidateStage s : CandidateStage.values()) {
-            columns.put(s, new java.util.ArrayList<>());
+            columns.put(s, new ArrayList<>());
         }
         for (Candidate c : recruitmentDao.candidatesOfJob(jobId)) {
             columns.get(c.getStage()).add(c);

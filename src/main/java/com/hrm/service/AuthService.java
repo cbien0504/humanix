@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Authentication use cases (UC-01, UC-03).
@@ -49,7 +50,7 @@ public class AuthService {
         this.clock = clock;
         this.maxFailedLogins = maxFailedLogins;
         this.lockDuration = Duration.ofMinutes(lockMinutes);
-        this.dummyHash = hasher.hash(java.util.UUID.randomUUID().toString());
+        this.dummyHash = hasher.hash(UUID.randomUUID().toString());
     }
 
     /** Result of a successful login. */

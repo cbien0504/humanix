@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -34,7 +35,7 @@ public abstract class BaseController extends HttpServlet {
         String path = req.getPathInfo();
         Optional<Router.Match> match = router.match(req.getMethod(), path);
         WebContext ctx = new WebContext(req, resp,
-                match.map(Router.Match::pathVariables).orElse(java.util.Map.of()));
+                match.map(Router.Match::pathVariables).orElse(Map.of()));
         try {
             if (match.isEmpty()) {
                 if (router.matchesOtherMethod(path)) {

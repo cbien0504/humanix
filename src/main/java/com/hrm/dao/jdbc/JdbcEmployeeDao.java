@@ -12,6 +12,7 @@ import com.hrm.model.SalaryChange;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -133,7 +134,7 @@ public class JdbcEmployeeDao implements EmployeeDao {
     @Override
     public void update(long id, EmployeeForm f) {
         Object[] values = params(f);
-        Object[] all = java.util.Arrays.copyOf(values, values.length + 1);
+        Object[] all = Arrays.copyOf(values, values.length + 1);
         all[values.length] = id;
         jdbc.update("""
                 UPDATE dbo.Employees SET EmployeeCode = ?, FullName = ?, Gender = ?, DateOfBirth = ?, Email = ?, Phone = ?,

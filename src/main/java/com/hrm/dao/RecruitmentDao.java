@@ -10,6 +10,8 @@ import com.hrm.model.Page;
 import com.hrm.model.PageRequest;
 import com.hrm.model.StageChange;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,7 +28,7 @@ public interface RecruitmentDao {
     void updateJob(long jobPostingId, JobPostingForm form);
 
     /** Changes the status; {@code openDateIfMissing}/{@code closeDate} are applied when not null. */
-    void updateJobStatus(long jobPostingId, JobStatus status, java.time.LocalDate openDateIfMissing, java.time.LocalDate closeDate);
+    void updateJobStatus(long jobPostingId, JobStatus status, LocalDate openDateIfMissing, LocalDate closeDate);
 
     void deleteJob(long jobPostingId);
 
@@ -43,7 +45,7 @@ public interface RecruitmentDao {
 
     void updateCandidate(long candidateId, CandidateForm form);
 
-    void updateCandidateReview(long candidateId, Integer rating, java.time.LocalDateTime interviewAt, String notes);
+    void updateCandidateReview(long candidateId, Integer rating, LocalDateTime interviewAt, String notes);
 
     void deleteCandidate(long candidateId);
 

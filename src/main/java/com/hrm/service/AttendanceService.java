@@ -3,9 +3,11 @@ package com.hrm.service;
 import com.hrm.dao.AttendanceDao;
 import com.hrm.dao.EmployeeDao;
 import com.hrm.dao.LeaveDao;
+import com.hrm.exception.AppException;
 import com.hrm.exception.BusinessException;
 import com.hrm.exception.ForbiddenException;
 import com.hrm.exception.NotFoundException;
+import com.hrm.exception.ValidationException;
 import com.hrm.model.AttendanceFilter;
 import com.hrm.model.AttendanceForm;
 import com.hrm.model.AttendanceRecord;
@@ -25,6 +27,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -201,12 +204,12 @@ public class AttendanceService {
      */
     public BulkResult saveBatch(List<AttendanceForm> items) {
         if (items == null || items.isEmpty()) {
-            throw new com.hrm.exception.ValidationException("body", "Danh sách chấm công rỗng.");
+            throw new ValidationException("body", "Danh sách chấm công rỗng.");
         }
         if (items.size() > MAX_BULK) {
-            throw new com.hrm.exception.ValidationException("body", "Tối đa " + MAX_BULK + " bản ghi mỗi lần gửi.");
+            throw new ValidationException("body", "Tối đa " + MAX_BULK + " bản ghi mỗi lần gửi.");
         }
-        List<BulkItemResult> results = new java.util.ArrayList<>(items.size());
+        List<BulkItemResult> results = new ArrayList<>(items.size());
         int saved = 0;
         for (int i = 0; i < items.size(); i++) {
             AttendanceForm item = items.get(i);
@@ -214,7 +217,7 @@ public class AttendanceService {
                 AttendanceRecord r = save(item, "API");
                 results.add(new BulkItemResult(i, r.getEmployeeCode(), r.getWorkDate(), true, r.getStatus().name(), null));
                 saved++;
-            } catch (com.hrm.exception.AppException e) {
+            } catch (AppException e) {
                 results.add(new BulkItemResult(i, item == null ? null : item.employeeCode(), item == null ? null : item.workDate(),
                         false, null, e.getMessage()));
             }
