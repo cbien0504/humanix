@@ -3,10 +3,12 @@ package com.hrm.config;
 import com.hrm.web.Formats;
 import com.hrm.web.api.AdminApiController;
 import com.hrm.web.api.AttendanceApiController;
+import com.hrm.web.api.CandidateApiController;
 import com.hrm.web.api.LeaveApiController;
 import com.hrm.web.api.PayrollApiController;
 import com.hrm.web.api.DepartmentApiController;
 import com.hrm.web.api.EmployeeApiController;
+import com.hrm.web.api.JobApiController;
 import com.hrm.web.api.UserApiController;
 import com.hrm.web.controller.AdminController;
 import com.hrm.web.controller.AttendanceController;
@@ -18,6 +20,7 @@ import com.hrm.web.controller.LoginController;
 import com.hrm.web.controller.LogoutController;
 import com.hrm.web.controller.PayrollController;
 import com.hrm.web.controller.ProfileController;
+import com.hrm.web.controller.RecruitmentController;
 import com.hrm.web.controller.ViewController;
 import com.hrm.web.filter.AuthenticationFilter;
 import com.hrm.web.filter.AuthorizationFilter;
@@ -112,6 +115,11 @@ public class AppBootstrap implements ServletContextListener {
         // payroll
         servlet(sc, "payroll", new PayrollController(app.payrollService(), app.departmentService()), "/payroll/*");
         servlet(sc, "apiPayroll", new PayrollApiController(app.payrollService()), "/api/payroll/*");
+        // recruitment
+        servlet(sc, "recruitment", new RecruitmentController(app.recruitmentService(), app.departmentService(),
+                app.positionService()), "/recruitment/*");
+        servlet(sc, "apiJobs", new JobApiController(app.recruitmentService()), "/api/jobs/*");
+        servlet(sc, "apiCandidates", new CandidateApiController(app.recruitmentService()), "/api/candidates/*");
     }
 
     private static void filter(ServletContext sc, String name, Filter filter, String... patterns) {
