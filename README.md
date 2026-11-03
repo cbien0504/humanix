@@ -14,7 +14,7 @@ thông tin nhân viên, chấm công & nghỉ phép, tính lương, tuyển dụ
 | 5 | Phát triển tính năng (6 module + dashboard, báo cáo) | ✅ |
 | 6 | REST API & import dữ liệu – [docs/api.md](docs/api.md) | ✅ |
 | 7 | Kiểm thử – [docs/05-test-report.md](docs/05-test-report.md) | ✅ |
-| 8 | Xử lý sự cố & logging | ⏳ |
+| 8 | Xử lý sự cố & logging – [docs/06-troubleshooting-log.md](docs/06-troubleshooting-log.md) | ✅ |
 | 9 | Triển khai Docker & CI | ⏳ |
 | 10 | Tài liệu hoàn thiện | ⏳ |
 
@@ -25,6 +25,7 @@ thông tin nhân viên, chấm công & nghỉ phép, tính lương, tuyển dụ
 - [03 – Stored procedure, view & tối ưu truy vấn](docs/03-query-optimization.md): execution plan trước/sau index đo trên 731.764 dòng chấm công.
 - [04 – Kiến trúc ứng dụng](docs/04-architecture.md): phân lớp model → dao → service → controller → view, SOLID, cấu hình, xử lý lỗi, logging, bảo mật.
 - [05 – Báo cáo kiểm thử](docs/05-test-report.md): 331 unit test + 8 integration test, độ phủ tầng service 94,9 %, lỗi thật tìm được nhờ test.
+- [06 – Nhật ký xử lý sự cố & logging](docs/06-troubleshooting-log.md): diễn tập lương âm, trùng mã (kể cả 6 request song song), mất kết nối DB; 26 sự cố thực tế; runbook.
 - [REST API & import dữ liệu](docs/api.md): xác thực API key, quy ước JSON, mã lỗi, endpoint nhân viên/chấm công/danh mục, import CSV/Excel.
 
 ## Khởi tạo cơ sở dữ liệu
