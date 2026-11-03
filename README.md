@@ -13,7 +13,7 @@ thông tin nhân viên, chấm công & nghỉ phép, tính lương, tuyển dụ
 | 4 | Kiến trúc ứng dụng – [docs/04-architecture.md](docs/04-architecture.md) | ✅ |
 | 5 | Phát triển tính năng (6 module + dashboard, báo cáo) | ✅ |
 | 6 | REST API & import dữ liệu – [docs/api.md](docs/api.md) | ✅ |
-| 7 | Kiểm thử | ⏳ |
+| 7 | Kiểm thử – [docs/05-test-report.md](docs/05-test-report.md) | ✅ |
 | 8 | Xử lý sự cố & logging | ⏳ |
 | 9 | Triển khai Docker & CI | ⏳ |
 | 10 | Tài liệu hoàn thiện | ⏳ |
@@ -24,6 +24,7 @@ thông tin nhân viên, chấm công & nghỉ phép, tính lương, tuyển dụ
 - [02 – Thiết kế CSDL](docs/02-database-design.md): ERD (Mermaid), từ điển dữ liệu, ràng buộc toàn vẹn, index, trigger, dữ liệu mẫu.
 - [03 – Stored procedure, view & tối ưu truy vấn](docs/03-query-optimization.md): execution plan trước/sau index đo trên 731.764 dòng chấm công.
 - [04 – Kiến trúc ứng dụng](docs/04-architecture.md): phân lớp model → dao → service → controller → view, SOLID, cấu hình, xử lý lỗi, logging, bảo mật.
+- [05 – Báo cáo kiểm thử](docs/05-test-report.md): 331 unit test + 8 integration test, độ phủ tầng service 94,9 %, lỗi thật tìm được nhờ test.
 - [REST API & import dữ liệu](docs/api.md): xác thực API key, quy ước JSON, mã lỗi, endpoint nhân viên/chấm công/danh mục, import CSV/Excel.
 
 ## Khởi tạo cơ sở dữ liệu
@@ -73,6 +74,19 @@ cp target/hrm.war $CATALINA_HOME/webapps/ && $CATALINA_HOME/bin/catalina.sh run
 
 Cấu hình đọc từ `src/main/resources/db.properties`, `app.properties` với biến môi trường ghi đè (`${HRM_DB_PASSWORD:}`…) –
 không có mật khẩu nào trong mã nguồn. Danh sách biến: [docs/04-architecture.md#5](docs/04-architecture.md).
+
+## Kiểm thử
+
+```bash
+./mvnw test       # 331 unit test: service (Mockito), DAO (JDBC giả lập), phân quyền, bảo mật
+./mvnw verify     # + cổng coverage JaCoCo: build fail nếu tầng service < 60 % dòng (hiện 94,9 %)
+# + 8 integration test trên SQL Server thật (tự bỏ qua nếu không đặt biến):
+HRM_IT_DB_URL="jdbc:sqlserver://localhost:1433;databaseName=HRM;encrypt=true;trustServerCertificate=true" \
+HRM_IT_DB_USER=hrm_app HRM_IT_DB_PASSWORD='…' ./mvnw verify
+```
+
+Điểm nhấn: stored procedure tính lương được đối chiếu **từng phiếu** với công thức Java trên dữ liệu thật; lương âm / trùng mã
+được chặn ở cả service lẫn ràng buộc DB; mất kết nối DB trả 503 trong < 1 giây. Chi tiết: [docs/05-test-report.md](docs/05-test-report.md).
 
 ## Tích hợp hệ thống & chuyển đổi dữ liệu
 
