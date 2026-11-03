@@ -29,7 +29,8 @@ public class BCryptPasswordHasher implements PasswordHasher {
         }
         try {
             return BCrypt.checkpw(rawPassword, hash);
-        } catch (IllegalArgumentException e) {   // malformed hash
+        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            // malformed or truncated hash: jBCrypt throws StringIndexOutOfBoundsException for "$2a$10$abc"
             return false;
         }
     }
