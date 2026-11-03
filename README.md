@@ -15,7 +15,7 @@ thông tin nhân viên, chấm công & nghỉ phép, tính lương, tuyển dụ
 | 6 | REST API & import dữ liệu – [docs/api.md](docs/api.md) | ✅ |
 | 7 | Kiểm thử – [docs/05-test-report.md](docs/05-test-report.md) | ✅ |
 | 8 | Xử lý sự cố & logging – [docs/06-troubleshooting-log.md](docs/06-troubleshooting-log.md) | ✅ |
-| 9 | Triển khai Docker & CI | ⏳ |
+| 9 | Triển khai Docker & CI – [Dockerfile](Dockerfile), [docker-compose.yml](docker-compose.yml), [CI](.github/workflows/ci.yml) | ✅ |
 | 10 | Tài liệu hoàn thiện | ⏳ |
 
 ## Tài liệu
@@ -28,7 +28,32 @@ thông tin nhân viên, chấm công & nghỉ phép, tính lương, tuyển dụ
 - [06 – Nhật ký xử lý sự cố & logging](docs/06-troubleshooting-log.md): diễn tập lương âm, trùng mã (kể cả 6 request song song), mất kết nối DB; 26 sự cố thực tế; runbook.
 - [REST API & import dữ liệu](docs/api.md): xác thực API key, quy ước JSON, mã lỗi, endpoint nhân viên/chấm công/danh mục, import CSV/Excel.
 
-## Khởi tạo cơ sở dữ liệu
+## Chạy nhanh bằng Docker (khuyến nghị)
+
+Yêu cầu: Docker 24+ với Compose v2, ~3 GB RAM trống.
+
+```bash
+cp .env.example .env            # đổi MSSQL_SA_PASSWORD, APP_DB_PASSWORD, HRM_API_KEY
+docker compose up -d --build    # lần đầu vài phút: tải image, build, khởi tạo DB và dữ liệu mẫu
+docker compose ps               # chờ app ở trạng thái (healthy)
+# → http://localhost:8080  ·  tài khoản demo: admin / hr / manager / employee, mật khẩu Demo@123
+```
+
+| Service | Vai trò |
+|---|---|
+| `db` | SQL Server 2022 (Developer), dữ liệu trong volume `mssql-data`, healthcheck bằng `sqlcmd` |
+| `db-init` | chạy một lần `db/init-db.sh`: schema, view, SP, trigger, dữ liệu mẫu, login `hrm_app` quyền tối thiểu; chạy lại thì bỏ qua phần đã có |
+| `app` | image `hrm-system` (multi-stage: Maven build → Tomcat 10.1/JRE 17), chạy bằng user không phải root, log trong volume `app-logs`, healthcheck `/health` |
+
+```bash
+docker compose logs -f app                       # log ứng dụng
+FORCE_RESET=true docker compose up db-init       # tạo lại dữ liệu mẫu từ đầu
+docker compose down                              # dừng (giữ dữ liệu) · down -v: xóa luôn dữ liệu
+```
+
+Image không chứa mật khẩu nào: mọi cấu hình đi qua biến môi trường (`HRM_DB_URL`, `HRM_DB_USER`, `HRM_DB_PASSWORD`, `HRM_API_KEY`…).
+
+## Khởi tạo cơ sở dữ liệu (không dùng Docker Compose)
 
 ```bash
 docker run -d --name hrm-db -e ACCEPT_EULA=Y -e MSSQL_SA_PASSWORD='<StrongPassword>' \
@@ -88,6 +113,16 @@ HRM_IT_DB_USER=hrm_app HRM_IT_DB_PASSWORD='…' ./mvnw verify
 
 Điểm nhấn: stored procedure tính lương được đối chiếu **từng phiếu** với công thức Java trên dữ liệu thật; lương âm / trùng mã
 được chặn ở cả service lẫn ràng buộc DB; mất kết nối DB trả 503 trong < 1 giây. Chi tiết: [docs/05-test-report.md](docs/05-test-report.md).
+
+## CI – GitHub Actions
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) chạy khi push lên `main` và với mọi pull request:
+
+| Job | Nội dung |
+|---|---|
+| `build` | `./mvnw verify`: biên dịch, enforcer, 333 unit test, cổng coverage JaCoCo; lưu báo cáo test/coverage và file WAR |
+| `integration` | khởi động SQL Server 2022 với mật khẩu sinh ngẫu nhiên mỗi lần chạy, chạy `db/init-db.sh`, rồi `./mvnw verify` kèm 8 integration test |
+| `docker` | build image từ `Dockerfile` (có cache), không push |
 
 ## Tích hợp hệ thống & chuyển đổi dữ liệu
 

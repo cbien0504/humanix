@@ -1,0 +1,14 @@
+# Only pom.xml and src/ are needed to build the image
+.git
+.github
+.idea
+.vscode
+.mvn/wrapper/maven-wrapper.jar
+target
+logs
+import-reports
+.playwright-mcp
+docs
+data
+*.iml
+.env

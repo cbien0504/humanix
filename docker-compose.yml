@@ -1,0 +1,71 @@
+# -----------------------------------------------------------------------------
+# HRM System – full stack: SQL Server 2022 + one-shot schema/seed job + Tomcat app
+#
+#   cp .env.example .env        # then change the passwords
+#   docker compose up -d --build
+#   open http://localhost:8080  (demo accounts: see README)
+#
+# The database lives in the volume "mssql-data": data survives "down"/"up";
+# "docker compose down -v" deletes it (FORCE_RESET=true rebuilds it in place).
+# -----------------------------------------------------------------------------
+name: hrm
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?set MSSQL_SA_PASSWORD in .env}
+      MSSQL_MEMORY_LIMIT_MB: ${MSSQL_MEMORY_LIMIT_MB:-2048}
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "${DB_PORT:-1433}:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -b -Q 'SELECT 1' > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+
+  # Creates the schema, procedures, triggers, demo data and the least-privilege login hrm_app.
+  # Idempotent: skips everything that already exists unless FORCE_RESET=true.
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: ["bash", "/db/init-db.sh"]
+    environment:
+      DB_HOST: db
+      DB_ADMIN_PASSWORD: ${MSSQL_SA_PASSWORD}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?set APP_DB_PASSWORD in .env}
+      FORCE_RESET: ${FORCE_RESET:-false}
+    volumes:
+      - ./db:/db:ro
+    restart: "no"
+
+  app:
+    build: .
+    image: hrm-system:latest
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      HRM_DB_URL: "jdbc:sqlserver://db:1433;databaseName=HRM;encrypt=true;trustServerCertificate=true;applicationName=HRM-Web"
+      HRM_DB_USER: hrm_app
+      HRM_DB_PASSWORD: ${APP_DB_PASSWORD}
+      HRM_API_KEY: ${HRM_API_KEY:-}
+      HRM_SHOW_DEMO_ACCOUNTS: ${HRM_SHOW_DEMO_ACCOUNTS:-true}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    volumes:
+      - app-logs:/usr/local/tomcat/logs
+    restart: unless-stopped
+
+volumes:
+  mssql-data:
+  app-logs:
