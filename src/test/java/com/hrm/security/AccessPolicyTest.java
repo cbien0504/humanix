@@ -9,10 +9,6 @@ import java.util.EnumSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * URL-level role check (first line of RBAC; data scope is enforced again in the services).
- * The table mirrors the permission matrix of docs/01-requirements.md.
- */
 class AccessPolicyTest {
 
     private final AccessPolicy policy = new AccessPolicy();
@@ -29,12 +25,10 @@ class AccessPolicyTest {
 
     @ParameterizedTest(name = "{0} {1} {2} → {3}")
     @CsvSource({
-            // personal pages: every signed-in employee
             "EMPLOYEE, GET,    /attendance,                 true",
             "EMPLOYEE, POST,   /api/attendance/check-in,    true",
             "EMPLOYEE, GET,    /payroll/my,                 true",
             "EMPLOYEE, POST,   /api/payroll/simulate,       true",
-            // company data is closed to employees
             "EMPLOYEE, GET,    /payroll,                    false",
             "EMPLOYEE, GET,    /api/payroll/periods,        false",
             "EMPLOYEE, GET,    /employees,                  false",
@@ -42,7 +36,6 @@ class AccessPolicyTest {
             "EMPLOYEE, GET,    /leave/approvals,            false",
             "EMPLOYEE, GET,    /recruitment,                false",
             "EMPLOYEE, GET,    /admin/users,                false",
-            // managers read their team, HR writes
             "MANAGER,  GET,    /employees,                  true",
             "MANAGER,  GET,    /api/employees/16,           true",
             "MANAGER,  PUT,    /api/employees/16,           false",
@@ -62,11 +55,9 @@ class AccessPolicyTest {
             "HR,       GET,    /api/payroll/settings,       true",
             "HR,       PUT,    /api/payroll/settings,       false",
             "HR,       GET,    /admin/audit,                false",
-            // administrators hold every role
             "ADMIN,    PUT,    /api/payroll/settings,       true",
             "ADMIN,    GET,    /api/audit-logs,             true",
             "ADMIN,    GET,    /payroll,                    true",
-            // API key: integration endpoints only
             "API,      GET,    /api/employees,              true",
             "API,      POST,   /api/attendance/bulk,        true",
             "API,      GET,    /api/positions/6,            true",
@@ -80,7 +71,6 @@ class AccessPolicyTest {
 
     @Test
     void prefixesMatchWholePathSegmentsOnly() {
-        // "/payrollx" must not be governed by the "/payroll" rule, and "/api/employees-export" not by "/api/employees"
         assertThat(policy.isAllowed(Fixtures.employee(16), "GET", "/payrollx")).isTrue();
         assertThat(policy.isAllowed(Fixtures.technical(), "GET", "/api/employees-export")).isFalse();
     }

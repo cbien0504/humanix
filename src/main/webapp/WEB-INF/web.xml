@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Servlets and filters are registered programmatically by com.hrm.config.AppBootstrap
-  (constructor injection + deterministic filter order). metadata-complete="true" disables
-  annotation scanning of all JARs, which also speeds up Tomcat start-up.
--->
 <web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
@@ -20,7 +15,6 @@
         <cookie-config>
             <http-only>true</http-only>
         </cookie-config>
-        <!-- never put the session id in URLs -->
         <tracking-mode>COOKIE</tracking-mode>
     </session-config>
 
@@ -32,9 +26,6 @@
         </jsp-property-group>
     </jsp-config>
 
-    <!-- container-level errors (unmapped URLs, sendError() from filters, uncaught exceptions)
-         → ErrorPageServlet, which answers JSON or HTML. A location without error-code/exception-type
-         is the default error page for every status. -->
     <error-page>
         <location>/error</location>
     </error-page>

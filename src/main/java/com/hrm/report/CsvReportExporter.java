@@ -14,11 +14,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * CSV exporter (RFC 4180 via Apache Commons CSV). Writes a UTF-8 BOM so Excel shows Vietnamese
- * correctly, and neutralises CSV/formula injection: a text cell starting with = + - @ (or tab/CR)
- * is prefixed with an apostrophe, so a name like "=HYPERLINK(...)" is never executed by Excel.
- */
 public class CsvReportExporter implements ReportExporter {
 
     private static final DateTimeFormatter DMY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -59,7 +54,7 @@ public class CsvReportExporter implements ReportExporter {
             return bd.stripTrailingZeros().toPlainString();
         }
         if (value instanceof Number n) {
-            return n.toString();             // numbers (also negative ones) are never sanitised
+            return n.toString();
         }
         if (value instanceof LocalDate d) {
             return DMY.format(d);
@@ -67,7 +62,6 @@ public class CsvReportExporter implements ReportExporter {
         return sanitize(value.toString());
     }
 
-    /** Prevents spreadsheet formula injection (OWASP "CSV Injection"). */
     static String sanitize(String text) {
         if (!text.isEmpty() && "=+-@\t\r".indexOf(text.charAt(0)) >= 0) {
             return "'" + text;

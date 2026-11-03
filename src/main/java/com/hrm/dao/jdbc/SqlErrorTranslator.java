@@ -11,18 +11,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Translates SQL Server errors into application exceptions with user-friendly messages.
- * <ul>
- *   <li>2627 / 2601 – UNIQUE violation → {@link DataIntegrityException} (with the input field)</li>
- *   <li>547 – CHECK / FOREIGN KEY violation → {@link DataIntegrityException}</li>
- *   <li>51000–51999 – business errors THROWn by our triggers / procedures → {@link BusinessException}</li>
- *   <li>SQLState 08xxx, pool timeout – connection failure → {@link DatabaseUnavailableException}</li>
- *   <li>1205 – deadlock victim → retryable {@link DataAccessException}</li>
- * </ul>
- * Constraint names follow the naming convention of {@code db/schema.sql}, which makes this
- * mapping possible and keeps raw SQL messages away from users.
- */
 public final class SqlErrorTranslator {
 
     private static final Pattern CONSTRAINT_NAME =
@@ -68,7 +56,6 @@ public final class SqlErrorTranslator {
             Map.entry("FK_PerformanceReviews_Employees", new Hint(null, "Nhân viên đã có phiếu đánh giá – hãy chuyển sang trạng thái Nghỉ việc thay vì xóa.")),
             Map.entry("FK_Candidates_JobPostings", new Hint(null, "Tin tuyển dụng đã có ứng viên nên không thể xóa.")));
 
-    /** Converts {@code e}; {@code sql} is only used for the technical message that gets logged. */
     public RuntimeException translate(SQLException e, String sql) {
         if (isConnectionFailure(e)) {
             return new DatabaseUnavailableException(e);

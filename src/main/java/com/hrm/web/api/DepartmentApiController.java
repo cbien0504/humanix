@@ -7,10 +7,6 @@ import com.hrm.service.PositionService;
 import com.hrm.web.BaseController;
 import com.hrm.web.Router;
 
-/**
- * {@code /api/departments} and {@code /api/positions} (same servlet class, two instances).
- * Reads are open to every signed-in user (drop-downs); writes require HR (AccessPolicy).
- */
 public class DepartmentApiController extends BaseController {
 
     private static final long serialVersionUID = 1L;

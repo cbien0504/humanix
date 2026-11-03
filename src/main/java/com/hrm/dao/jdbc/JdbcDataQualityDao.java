@@ -5,7 +5,6 @@ import com.hrm.model.ValidationCheck;
 
 import java.util.List;
 
-/** Calls sp_RunDataValidation. */
 public class JdbcDataQualityDao implements DataQualityDao {
 
     private final JdbcExecutor jdbc;

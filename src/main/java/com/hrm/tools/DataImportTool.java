@@ -21,16 +21,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Command-line data migration (UC-72): imports employees from CSV/XLSX with exactly the same
- * validation as the web screen and prints a per-row error report.
- * <pre>
- * java -cp "target/hrm/WEB-INF/classes:target/hrm/WEB-INF/lib/*" com.hrm.tools.DataImportTool \
- *      --file data/import/employees-sample.csv [--mode validate|valid-only|all-or-nothing] [--report errors.csv]
- * </pre>
- * Database settings come from the same HRM_DB_* environment variables as the web application.
- * Exit code: 0 = no row error, 1 = row errors, 2 = usage or fatal error.
- */
 public final class DataImportTool {
 
     private DataImportTool() {

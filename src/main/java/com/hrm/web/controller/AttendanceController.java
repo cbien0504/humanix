@@ -5,7 +5,6 @@ import com.hrm.service.LeaveService;
 import com.hrm.web.BaseController;
 import com.hrm.web.Router;
 
-/** Pages {@code /attendance} (my attendance), {@code /attendance/manage}, {@code /leave}, {@code /leave/approvals}. */
 public class AttendanceController extends BaseController {
 
     private static final long serialVersionUID = 1L;

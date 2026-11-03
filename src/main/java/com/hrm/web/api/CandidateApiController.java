@@ -12,11 +12,6 @@ import com.hrm.web.WebContext;
 
 import java.io.IOException;
 
-/**
- * {@code /api/candidates}: GET / · GET /{id} · POST / · PUT /{id} · DELETE /{id} ·
- * POST /{id}/stage {"stage":"INTERVIEW"} · POST /{id}/hire {HireRequest}.
- * Managers (in scope) may read and PUT rating/notes; every other write is HR only.
- */
 public class CandidateApiController extends BaseController {
 
     private static final long serialVersionUID = 1L;
@@ -27,7 +22,6 @@ public class CandidateApiController extends BaseController {
         this.service = service;
     }
 
-    /** Body of a stage change. */
     public record StageRequest(CandidateStage stage) {
     }
 

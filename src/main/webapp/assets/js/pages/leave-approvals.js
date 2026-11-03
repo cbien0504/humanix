@@ -1,4 +1,3 @@
-/* Leave approval queue for managers and HR (UC-25, UC-27) */
 $(function () {
     'use strict';
     var table = new HRM.DataTable($('#approvalTable'), {

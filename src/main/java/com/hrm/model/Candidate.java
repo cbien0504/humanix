@@ -5,7 +5,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/** Applicant of a job posting (table Candidates). */
 public class Candidate {
 
     private long candidateId;

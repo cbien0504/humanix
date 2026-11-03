@@ -7,7 +7,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** Dynamic WHERE / ORDER BY: user input only ever travels as bound parameters (NFR-02). */
 class SqlBuildersTest {
 
     private static final Map<String, String> SORT = Map.of("name", "e.FullName", "salary", "e.BaseSalary");
@@ -51,7 +50,6 @@ class SqlBuildersTest {
 
     @Test
     void missingSortFallsBackInsteadOfFailingOnMapOfNull() {
-        // Map.of(...).get(null) throws NullPointerException – a request without ?sort= used to fail with 500
         assertThat(SqlOrder.of(SORT, PageRequest.of(null, null, null, null, 10), "e.EmployeeCode", "e.EmployeeId"))
                 .isEqualTo(" ORDER BY e.EmployeeCode ASC, e.EmployeeId");
     }

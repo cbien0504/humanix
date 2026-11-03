@@ -1,4 +1,3 @@
-/* Candidate pipeline board (UC-41 … UC-43) */
 $(function () {
     'use strict';
     var $page = $('#pipelinePage');
@@ -59,7 +58,7 @@ $(function () {
             row('Nguồn', document.createTextNode(SOURCES[c.source] || c.source));
             row('Lương mong muốn', document.createTextNode(HRM.fmt.money(c.expectedSalary)));
             row('Ngày nộp', document.createTextNode(HRM.fmt.date(c.appliedDate)));
-            if (c.resumeUrl && /^https?:\/\//i.test(c.resumeUrl)) {   // never render javascript: URLs
+            if (c.resumeUrl && /^https?:\/\//i.test(c.resumeUrl)) {
                 row('CV', $('<a target="_blank" rel="noopener noreferrer">').attr('href', c.resumeUrl).text('Mở CV'));
             }
             var $h = $('#cHistory').empty();

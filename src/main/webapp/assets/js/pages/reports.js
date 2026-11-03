@@ -1,4 +1,3 @@
-/* HR reports (UC-61, UC-62) */
 $(function () {
     'use strict';
     function iso(d) {
@@ -44,7 +43,6 @@ $(function () {
             });
     }
 
-    // export links carry the current filters
     $(document).on('click', 'a.export', function (e) {
         e.preventDefault();
         var report = $(this).data('report');

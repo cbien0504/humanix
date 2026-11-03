@@ -1,6 +1,5 @@
 package com.hrm.model;
 
-/** Employment status (CK_Employees_Status). */
 public enum EmployeeStatus {
     PROBATION("Thử việc"),
     ACTIVE("Chính thức"),
@@ -17,7 +16,6 @@ public enum EmployeeStatus {
         return label;
     }
 
-    /** Still employed (eligible for attendance, reviews…). */
     public boolean isWorking() {
         return this == PROBATION || this == ACTIVE;
     }

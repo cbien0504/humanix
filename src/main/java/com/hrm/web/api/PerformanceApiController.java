@@ -7,12 +7,6 @@ import com.hrm.service.PerformanceService;
 import com.hrm.web.BaseController;
 import com.hrm.web.Router;
 
-/**
- * {@code /api/review-cycles}: GET / · POST / · PUT /{id} · DELETE /{id} · POST /{id}/open · POST /{id}/close · GET /{id}/stats
- * <br>
- * {@code /api/reviews}: GET /my · GET /?cycleId=&status=&keyword= · GET /criteria · GET /{id} ·
- * POST /{id}/self · POST /{id}/manager  ({"scores": {"1": 4, …}, "comment": "…"})
- */
 public class PerformanceApiController extends BaseController {
 
     private static final long serialVersionUID = 1L;

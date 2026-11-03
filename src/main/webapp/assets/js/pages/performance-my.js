@@ -1,4 +1,3 @@
-/* My performance reviews (UC-51) */
 $(function () {
     'use strict';
     var table = new HRM.DataTable($('#reviewTable'), {

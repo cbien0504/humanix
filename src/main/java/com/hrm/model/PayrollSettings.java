@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-/** Payroll parameters (table PayrollSettings) and the tax schedule (TaxBrackets). */
 public record PayrollSettings(Map<String, BigDecimal> values, List<TaxBracket> taxBrackets) {
 
     public static final String SOCIAL_INSURANCE_RATE = "SOCIAL_INSURANCE_RATE";

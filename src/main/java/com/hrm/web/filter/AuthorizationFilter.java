@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-/** Role-based URL authorization using {@link AccessPolicy} (first layer of access control). */
 public class AuthorizationFilter extends HttpFilter {
 
     private static final Logger log = LoggerFactory.getLogger(AuthorizationFilter.class);

@@ -18,10 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Account administration (UC-04). New accounts and reset passwords get a random temporary
- * password that must be changed at first login; it is returned once and never stored in clear.
- */
 public class UserService {
 
     private final UserDao userDao;
@@ -38,15 +34,12 @@ public class UserService {
         this.tx = tx;
     }
 
-    /** Request body for creating an account. */
     public record CreateUserCommand(String username, Long employeeId, Set<Role> roles) {
     }
 
-    /** Request body for updating roles / status. */
     public record UpdateUserCommand(Set<Role> roles, Boolean active) {
     }
 
-    /** Created account plus the one-time temporary password. */
     public record AccountCredentials(User user, String temporaryPassword) {
     }
 

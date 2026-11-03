@@ -45,7 +45,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/** Job postings, candidate pipeline BR-42 and hiring BR-43 (UC-40 … UC-43). */
 @ExtendWith(MockitoExtension.class)
 class RecruitmentServiceTest {
 

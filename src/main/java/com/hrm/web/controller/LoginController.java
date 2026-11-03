@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
-/** {@code /login}: login form and authentication (UC-01). */
 public class LoginController extends BaseController {
 
     private static final long serialVersionUID = 1L;
@@ -46,7 +45,7 @@ public class LoginController extends BaseController {
             AuthService.LoginResult result = authService.login(username, ctx.request().getParameter("password"));
             HttpServletRequest req = ctx.request();
             HttpSession session = req.getSession();
-            req.changeSessionId();                       // defeat session fixation
+            req.changeSessionId();
             session.setAttribute(WebContext.SESSION_USER, result.user());
             CsrfTokens.rotate(session);
             if (result.mustChangePassword()) {
@@ -61,7 +60,6 @@ public class LoginController extends BaseController {
         }
     }
 
-    /** Only local absolute paths are accepted as redirect target (no open redirect). */
     static String safeNext(String next) {
         if (next == null || !next.startsWith("/") || next.startsWith("//") || next.contains("\\")
                 || next.contains("://") || next.startsWith("/login")) {

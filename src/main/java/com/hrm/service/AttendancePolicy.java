@@ -6,11 +6,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-/**
- * Attendance rules BR-11/BR-12 (configurable in app.properties):
- * check-in after {@code workStart + grace} is LATE (late minutes counted from workStart);
- * less than {@code halfDayMaxHours} between check-in and check-out is HALF_DAY.
- */
 public final class AttendancePolicy {
 
     private final LocalTime workStart;
@@ -23,7 +18,6 @@ public final class AttendancePolicy {
         this.halfDayMaxHours = halfDayMaxHours;
     }
 
-    /** Status and late minutes for a check-in time. */
     public record CheckInResult(AttendanceStatus status, int lateMinutes) {
     }
 
@@ -36,7 +30,6 @@ public final class AttendancePolicy {
         return new CheckInResult(AttendanceStatus.PRESENT, 0);
     }
 
-    /** Final status once both times are known. */
     public AttendanceStatus evaluateDay(LocalDateTime checkIn, LocalDateTime checkOut) {
         CheckInResult in = evaluateCheckIn(checkIn.toLocalTime());
         if (checkOut != null) {

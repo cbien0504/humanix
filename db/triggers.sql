@@ -1,17 +1,6 @@
-/* =============================================================================
-   HRM System – triggers (data integrity & history that must hold no matter
-   which client writes the data: web app, REST API, import tool or plain SQL).
-   All triggers are set-based (safe for multi-row INSERT/UPDATE).
-   The acting application user is read from SESSION_CONTEXT(N'app_user'),
-   which the application sets on every connection it borrows from the pool.
-   ============================================================================= */
 SET NOCOUNT ON;
 GO
 
-/* -----------------------------------------------------------------------------
-   Employees: keep a salary history (BR-08). Fires on INSERT (initial salary)
-   and on UPDATE when base salary or allowance really changed.
-   ----------------------------------------------------------------------------- */
 CREATE OR ALTER TRIGGER dbo.trg_Employees_AuditSalary
 ON dbo.Employees
 AFTER INSERT, UPDATE
@@ -31,9 +20,6 @@ BEGIN
 END;
 GO
 
-/* -----------------------------------------------------------------------------
-   Employees: a terminated employee can no longer sign in.
-   ----------------------------------------------------------------------------- */
 CREATE OR ALTER TRIGGER dbo.trg_Employees_DeactivateUser
 ON dbo.Employees
 AFTER UPDATE
@@ -51,11 +37,6 @@ BEGIN
 END;
 GO
 
-/* -----------------------------------------------------------------------------
-   LeaveRequests: no overlapping active requests for the same employee (BR-21).
-   The application checks first (friendly message); this trigger guarantees it.
-   Error 51001 is translated to a business error by the Java data-access layer.
-   ----------------------------------------------------------------------------- */
 CREATE OR ALTER TRIGGER dbo.trg_LeaveRequests_PreventOverlap
 ON dbo.LeaveRequests
 AFTER INSERT, UPDATE
@@ -77,13 +58,6 @@ BEGIN
 END;
 GO
 
-/* -----------------------------------------------------------------------------
-   LeaveRequests: keep LeaveBalances.UsedDays in sync (BR-22, BR-25).
-   Recomputes the affected (employee, type, year) rows from APPROVED requests,
-   which is idempotent and correct for inserts, updates, cancellations, deletes.
-   If the result exceeds the entitlement, CK_LeaveBalances_Days rolls back the
-   whole statement – the database itself refuses to over-spend leave.
-   ----------------------------------------------------------------------------- */
 CREATE OR ALTER TRIGGER dbo.trg_LeaveRequests_SyncBalance
 ON dbo.LeaveRequests
 AFTER INSERT, UPDATE, DELETE
@@ -108,7 +82,6 @@ BEGIN
         WHERE lr.EmployeeId  = lb.EmployeeId
           AND lr.LeaveTypeId = lb.LeaveTypeId
           AND lr.Status      = 'APPROVED'
-          -- sargable year filter (no YEAR() on the column)
           AND lr.StartDate  >= DATEFROMPARTS(lb.BalanceYear, 1, 1)
           AND lr.StartDate  <  DATEFROMPARTS(lb.BalanceYear + 1, 1, 1)
     ) AS used
@@ -116,9 +89,6 @@ BEGIN
 END;
 GO
 
-/* -----------------------------------------------------------------------------
-   Candidates: record every pipeline stage change (time-to-hire analytics).
-   ----------------------------------------------------------------------------- */
 CREATE OR ALTER TRIGGER dbo.trg_Candidates_StageHistory
 ON dbo.Candidates
 AFTER INSERT, UPDATE

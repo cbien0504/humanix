@@ -16,10 +16,6 @@ import java.util.Map;
 import static com.hrm.testsupport.Fixtures.vnd;
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Payroll formula BR-32 … BR-34. Expected values are worked out by hand from the 2026 parameters
- * (reference salary 2,340,000; regional minimum 5,310,000; deductions 15.5 M / 6.2 M).
- */
 class PayrollCalculatorTest {
 
     private static final BigDecimal DAYS_22 = BigDecimal.valueOf(22);
@@ -38,13 +34,13 @@ class PayrollCalculatorTest {
         Result r = calculator.simulate(vnd(30_000_000), BigDecimal.ZERO, 1, settings);
 
         assertThat(r.grossSalary()).isEqualByComparingTo("30000000");
-        assertThat(r.socialInsurance()).isEqualByComparingTo("2400000");      // 8 %
-        assertThat(r.healthInsurance()).isEqualByComparingTo("450000");       // 1.5 %
-        assertThat(r.unemploymentInsurance()).isEqualByComparingTo("300000"); // 1 %
+        assertThat(r.socialInsurance()).isEqualByComparingTo("2400000");
+        assertThat(r.healthInsurance()).isEqualByComparingTo("450000");
+        assertThat(r.unemploymentInsurance()).isEqualByComparingTo("300000");
         assertThat(r.totalInsurance()).isEqualByComparingTo("3150000");
         assertThat(r.dependentDeduction()).isEqualByComparingTo("6200000");
-        assertThat(r.taxableIncome()).isEqualByComparingTo("5150000");        // 30 − 3.15 − 15.5 − 6.2
-        assertThat(r.personalIncomeTax()).isEqualByComparingTo("265000");     // 5 M × 5 % + 150 k × 10 %
+        assertThat(r.taxableIncome()).isEqualByComparingTo("5150000");
+        assertThat(r.personalIncomeTax()).isEqualByComparingTo("265000");
         assertThat(r.netSalary()).isEqualByComparingTo("26585000");
     }
 
@@ -52,13 +48,13 @@ class PayrollCalculatorTest {
     @CsvSource({
             "0, 0",
             "5000000, 250000",
-            "5000001, 250000",       // 0.1 VND in bracket 2 rounds away
+            "5000001, 250000",
             "10000000, 750000",
             "18000000, 1950000",
             "32000000, 4750000",
             "52000000, 9750000",
             "80000000, 18150000",
-            "100000000, 25150000"    // reaches the open-ended 35 % bracket
+            "100000000, 25150000"
     })
     void progressiveTaxOverSevenBrackets(long taxable, long expectedTax) {
         assertThat(calculator.tax(vnd(taxable), settings)).isEqualByComparingTo(vnd(expectedTax));
@@ -91,10 +87,10 @@ class PayrollCalculatorTest {
         void socialAndHealthInsuranceAreCappedAt46_8Million() {
             Result r = month(60_000_000, 0, 0, 22, 0);
 
-            assertThat(r.socialInsurance()).isEqualByComparingTo("3744000");      // 46.8 M × 8 %
-            assertThat(r.healthInsurance()).isEqualByComparingTo("702000");       // 46.8 M × 1.5 %
-            assertThat(r.unemploymentInsurance()).isEqualByComparingTo("600000"); // below its own cap
-            assertThat(r.personalIncomeTax()).isEqualByComparingTo("6613500");    // taxable 39,454,000
+            assertThat(r.socialInsurance()).isEqualByComparingTo("3744000");
+            assertThat(r.healthInsurance()).isEqualByComparingTo("702000");
+            assertThat(r.unemploymentInsurance()).isEqualByComparingTo("600000");
+            assertThat(r.personalIncomeTax()).isEqualByComparingTo("6613500");
             assertThat(r.netSalary()).isEqualByComparingTo("48340500");
         }
 
@@ -170,6 +166,6 @@ class PayrollCalculatorTest {
         Result r = calculator.calculate(new Input(vnd(1_000_001), BigDecimal.ZERO, 0, BigDecimal.valueOf(2),
                 BigDecimal.ONE, BigDecimal.ZERO), settings);
 
-        assertThat(r.salaryAmount()).isEqualByComparingTo("500001");   // 500,000.5 → HALF_EVEN would give 500,000
+        assertThat(r.salaryAmount()).isEqualByComparingTo("500001");
     }
 }

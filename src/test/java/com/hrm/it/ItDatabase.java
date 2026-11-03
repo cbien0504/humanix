@@ -8,11 +8,6 @@ import org.junit.jupiter.api.Assumptions;
 
 import java.util.Map;
 
-/**
- * Connection to a real SQL Server for the *IT tests (run by maven-failsafe in {@code verify}).
- * Without {@code HRM_IT_DB_URL} the tests are skipped, so a plain {@code ./mvnw verify} works on any
- * machine; CI and docker-compose set it. Every test works inside a transaction that is rolled back.
- */
 final class ItDatabase {
 
     static final String AUDIT_USER = "it-test";
@@ -35,7 +30,6 @@ final class ItDatabase {
         return new JdbcExecutor(dataSource, () -> AUDIT_USER, 10_000);
     }
 
-    /** Runs {@code work} in a transaction that is always rolled back, leaving the database unchanged. */
     static void rollbackAfter(JdbcExecutor jdbc, Runnable work) {
         try {
             jdbc.inTransaction(() -> {
@@ -43,7 +37,6 @@ final class ItDatabase {
                 throw new Rollback();
             });
         } catch (Rollback expected) {
-            // undone on purpose
         }
     }
 

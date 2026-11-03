@@ -13,7 +13,6 @@ import jakarta.servlet.ServletException;
 
 import java.io.IOException;
 
-/** {@code /employees}: employee list page and server-rendered profile page. */
 public class EmployeeController extends BaseController {
 
     private static final long serialVersionUID = 1L;
@@ -47,7 +46,6 @@ public class EmployeeController extends BaseController {
         showProfile(ctx, user, employee, employeeService);
     }
 
-    /** Shared by "/employees/{id}" and "/profile". */
     static void showProfile(WebContext ctx, AuthUser user, Employee employee, EmployeeService service)
             throws ServletException, IOException {
         boolean self = user.getEmployeeId() != null && user.getEmployeeId() == employee.getEmployeeId();

@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-/** Convenience base for filters that only deal with HTTP. */
 public abstract class HttpFilter implements Filter {
 
     @Override
@@ -22,7 +21,6 @@ public abstract class HttpFilter implements Filter {
     protected abstract void doFilter(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
             throws IOException, ServletException;
 
-    /** Request path without the context path, e.g. {@code /employees/5}. */
     protected static String path(HttpServletRequest req) {
         return req.getRequestURI().substring(req.getContextPath().length());
     }

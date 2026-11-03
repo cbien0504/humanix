@@ -1,12 +1,3 @@
-/*!
- * HRM chart conventions on top of Chart.js 4.
- * - Categorical palette (fixed order): blue #2a78d6, orange #eb6834, aqua #1baf7a –
- *   validated with the dataviz palette validator against the white card surface
- *   (lightness band, chroma floor, CVD ΔE 9.2, normal-vision ΔE 27.6: PASS; aqua is below
- *   3:1 contrast, so every chart ships a legend or direct labels AND a table view).
- * - Thin marks: bars ≤ 24px, 4px rounded data end, square at the baseline; 2px surface gap
- *   between stacked segments; hairline solid grid; text never wears the series colour.
- */
 (function (window, $) {
     'use strict';
 
@@ -40,7 +31,6 @@
     Chart.defaults.plugins.tooltip.usePointStyle = true;
     Chart.defaults.plugins.tooltip.bodyFont = {weight: '600'};
 
-    /** Draws the value at the tip of each bar of dataset 0 when options.plugins.valueLabels.format is set. */
     Chart.register({
         id: 'valueLabels',
         afterDatasetsDraw: function (chart, args, opts) {
@@ -76,7 +66,6 @@
     window.HRM.charts = {
         tokens: T,
 
-        /** 761 930 033 → "761,9 tr"; 1 250 000 000 → "1,3 tỷ" */
         moneyCompact: function (v) {
             v = Number(v);
             if (Math.abs(v) >= 1e9) {
@@ -88,7 +77,6 @@
             return number.format(v);
         },
 
-        /** Common cartesian axes: hairline grid on the value axis only. */
         axes: function (horizontal, extra) {
             var value = $.extend(true, {
                 beginAtZero: true,
@@ -100,7 +88,6 @@
             return horizontal ? {x: value, y: category} : {x: category, y: value};
         },
 
-        /** Table view twin of a chart (WCAG equivalent; values set with .text()). */
         tableView: function ($container, headers, rows) {
             var $table = $('<table class="table table-sm mb-0 mt-2">');
             var $tr = $('<tr>');
@@ -122,10 +109,6 @@
                 .append($('<div class="table-responsive">').append($table)));
         },
 
-        /**
-         * Tall segmented bar (one whole split into ≤ 6 parts): 28px, 2px surface gaps, share printed
-         * inside a block only when it fits, legend of names below.
-         */
         segmentedBar: function ($el, parts) {
             var total = parts.reduce(function (s, p) { return s + p.value; }, 0);
             var $bar = $('<div class="seg-bar" role="img">');
@@ -145,7 +128,7 @@
             });
             $bar.attr('aria-label', description.join(', '));
             $el.empty().append($bar, $legend);
-            $bar.find('.seg').each(function () {      // measure: drop labels that would not fit
+            $bar.find('.seg').each(function () {
                 var $s = $(this);
                 if ($s.find('span')[0].scrollWidth + 12 > $s.width()) {
                     $s.find('span').remove();

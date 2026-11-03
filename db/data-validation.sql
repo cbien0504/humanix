@@ -1,14 +1,3 @@
-/* =============================================================================
-   HRM System – data integrity validation
-   Usage: sqlcmd -d HRM -I -i db/data-validation.sql
-     Part 1  summary of all checks (sp_RunDataValidation) – expected: all PASS
-     Part 2  detailed rows for the three core rules:
-             duplicate employee codes, negative salaries, overlapping leave
-     Part 3  self-test: inside a transaction that is ROLLED BACK, constraints
-             and the overlap trigger are disabled, bad rows are inserted and
-             the checks must report FAIL – proving the checks actually work.
-   Safe to run on production: part 3 never commits.
-   ============================================================================= */
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 GO
@@ -40,7 +29,7 @@ SELECT e.EmployeeCode, e.FullName,
 FROM dbo.LeaveRequests AS a
 JOIN dbo.LeaveRequests AS b
   ON b.EmployeeId = a.EmployeeId AND b.LeaveRequestId > a.LeaveRequestId
- AND b.StartDate <= a.EndDate AND b.EndDate >= a.StartDate          -- interval overlap test
+ AND b.StartDate <= a.EndDate AND b.EndDate >= a.StartDate
 JOIN dbo.Employees AS e ON e.EmployeeId = a.EmployeeId
 WHERE a.Status IN ('PENDING', 'APPROVED') AND b.Status IN ('PENDING', 'APPROVED');
 GO
@@ -48,18 +37,15 @@ GO
 PRINT N'=== Part 3 – self-test (all changes are rolled back) ===';
 BEGIN TRANSACTION;
 
-    -- 3.1 duplicate employee code: disable the unique index backing the constraint
     ALTER INDEX UQ_Employees_EmployeeCode ON dbo.Employees DISABLE;
     INSERT INTO dbo.Employees (EmployeeCode, FullName, Gender, Email, DepartmentId, PositionId, HireDate, BaseSalary, Status)
     SELECT 'EMP0001', N'Bản ghi trùng mã (self-test)', 'M', 'selftest.dup@example.com', DepartmentId, PositionId,
            '2026-01-05', 15000000, 'ACTIVE'
     FROM dbo.Employees WHERE EmployeeCode = 'EMP0016';
 
-    -- 3.2 negative salary: bypass the CHECK constraint
     ALTER TABLE dbo.Employees NOCHECK CONSTRAINT CK_Employees_Salary;
     UPDATE dbo.Employees SET BaseSalary = -5000000 WHERE EmployeeCode = 'EMP0010';
 
-    -- 3.3 overlapping leave: bypass the overlap trigger
     DISABLE TRIGGER dbo.trg_LeaveRequests_PreventOverlap ON dbo.LeaveRequests;
     INSERT INTO dbo.LeaveRequests (EmployeeId, LeaveTypeId, StartDate, EndDate, TotalDays, Reason, Status)
     SELECT e.EmployeeId, lt.LeaveTypeId, '2026-11-17', '2026-11-19', 3, N'Self-test overlap', 'PENDING'
@@ -69,7 +55,7 @@ BEGIN TRANSACTION;
     PRINT N'Expected FAIL on DV01, DV04, DV06:';
     EXEC dbo.sp_RunDataValidation;
 
-ROLLBACK TRANSACTION;   -- index, constraint, trigger and data are restored
+ROLLBACK TRANSACTION;
 GO
 
 PRINT N'=== After rollback – constraints trusted again? ===';

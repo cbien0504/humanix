@@ -18,7 +18,6 @@ import java.util.Optional;
 
 public interface RecruitmentDao {
 
-    /** {@code scopeManagerId}: only postings of departments the manager runs or belongs to. */
     Page<JobPosting> searchJobs(String keyword, JobStatus status, Long departmentId, Long scopeManagerId, PageRequest page);
 
     Optional<JobPosting> findJob(long jobPostingId);
@@ -27,7 +26,6 @@ public interface RecruitmentDao {
 
     void updateJob(long jobPostingId, JobPostingForm form);
 
-    /** Changes the status; {@code openDateIfMissing}/{@code closeDate} are applied when not null. */
     void updateJobStatus(long jobPostingId, JobStatus status, LocalDate openDateIfMissing, LocalDate closeDate);
 
     void deleteJob(long jobPostingId);
@@ -49,7 +47,6 @@ public interface RecruitmentDao {
 
     void deleteCandidate(long candidateId);
 
-    /** Optimistic stage change ({@code WHERE Stage = expected}); returns updated rows. */
     int changeStage(long candidateId, CandidateStage expected, CandidateStage target, Long hiredEmployeeId);
 
     List<StageChange> history(long candidateId);

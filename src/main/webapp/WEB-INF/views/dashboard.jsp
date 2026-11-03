@@ -11,7 +11,6 @@
         </div>
     </div>
 
-    <%-- personal section (anyone linked to an employee record) --%>
     <section id="meSection" class="mb-4" hidden>
         <div class="row g-3">
             <div class="col-sm-6 col-xl-3">
@@ -49,7 +48,6 @@
         </div>
     </section>
 
-    <%-- team section (managers) --%>
     <section id="teamSection" class="mb-4" hidden>
         <h2 class="h6 text-uppercase text-body-secondary mb-2">Đội của tôi</h2>
         <div class="row g-3">
@@ -62,7 +60,6 @@
         </div>
     </section>
 
-    <%-- company section (HR / admin) --%>
     <section id="companySection" hidden>
         <h2 class="h6 text-uppercase text-body-secondary mb-2">Toàn công ty</h2>
         <div class="row g-3 mb-3">

@@ -12,17 +12,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Map;
 
-/**
- * REST resource {@code /api/payroll}.
- * <pre>
- * GET  /periods?year=              POST /periods/calculate {"year":2026,"month":10}
- * POST /periods/{id}/approve       POST /periods/{id}/pay
- * GET  /periods/{id}/payslips?keyword=&departmentId=&page=   GET /periods/{id}/departments
- * GET  /my                         GET  /payslips/{id}
- * POST /simulate {"baseSalary":..,"allowance":..,"dependents":..}
- * GET  /settings                   PUT  /settings {"PERSONAL_DEDUCTION": 15500000, ...}   (ADMIN)
- * </pre>
- */
 public class PayrollApiController extends BaseController {
 
     private static final long serialVersionUID = 1L;
@@ -33,7 +22,6 @@ public class PayrollApiController extends BaseController {
         this.payrollService = payrollService;
     }
 
-    /** Body of the calculate call. */
     public record CalculateRequest(int year, int month) {
     }
 

@@ -5,7 +5,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
-/** Performance review of one employee in one cycle, with its score lines. */
 public class PerformanceReview {
 
     private long reviewId;

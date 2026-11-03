@@ -3,11 +3,6 @@ package com.hrm.model;
 import java.util.EnumSet;
 import java.util.Set;
 
-/**
- * Recruitment pipeline (BR-42):
- * APPLIED → SCREENING → INTERVIEW → OFFER → HIRED, and from any open stage to
- * REJECTED (by the company) or WITHDRAWN (by the candidate). HIRED/REJECTED/WITHDRAWN are final.
- */
 public enum CandidateStage {
     APPLIED("Mới nộp"),
     SCREENING("Sàng lọc"),
@@ -31,7 +26,6 @@ public enum CandidateStage {
         return this == HIRED || this == REJECTED || this == WITHDRAWN;
     }
 
-    /** Stages reachable from this one (HIRED only through the hire action). */
     public Set<CandidateStage> next() {
         return switch (this) {
             case APPLIED -> EnumSet.of(SCREENING, REJECTED, WITHDRAWN);

@@ -47,7 +47,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/** HR reports with manager scoping (UC-61, UC-62) and the role-aware dashboard (UC-60). */
 @ExtendWith(MockitoExtension.class)
 class ReportingServicesTest {
 
@@ -89,7 +88,6 @@ class ReportingServicesTest {
             return new ReportService(reportDao, departmentDao, employeeDao, audit, Fixtures.clock());
         }
 
-        /** Manager 11 runs IT (#4); his own record is in IT too. */
         private void managerElevenRunsIt() {
             Department it = Fixtures.department(4, "IT", true);
             it.setManagerId(11L);
@@ -223,8 +221,8 @@ class ReportingServicesTest {
             when(recruitmentDao.recruitmentStats()).thenReturn(Map.of("openJobs", 3L));
             when(reportDao.payrollTrend(7)).thenReturn(List.of(
                     Map.of("year", 2026, "month", 9, "status", "PAID"),
-                    Map.of("year", 2026, "month", 10, "status", "CALCULATED"),     // finished month: shown
-                    Map.of("year", 2026, "month", 11, "status", "CALCULATED")));   // running month: hidden
+                    Map.of("year", 2026, "month", 10, "status", "CALCULATED"),
+                    Map.of("year", 2026, "month", 11, "status", "CALCULATED")));
             when(reportDao.departmentStatistics(TODAY)).thenReturn(List.of(stat(5, "SALES", 8), stat(4, "IT", 11)));
             when(reportDao.attendanceTrend(TODAY.minusDays(28), TODAY.minusDays(1))).thenReturn(List.of());
 

@@ -5,15 +5,10 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-/**
- * The authenticated principal stored in the HTTP session (kept small and serialisable).
- * {@link Role#ADMIN} implicitly satisfies every role check.
- */
 public final class AuthUser implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /** Synthetic principal used for system-to-system calls authenticated by API key. */
     public static final String API_CLIENT = "api-client";
 
     private final long userId;
@@ -38,7 +33,6 @@ public final class AuthUser implements Serializable {
         return username;
     }
 
-    /** Linked employee record, or {@code null} for technical accounts. */
     public Long getEmployeeId() {
         return employeeId;
     }
@@ -59,12 +53,10 @@ public final class AuthUser implements Serializable {
         return required.isEmpty() || required.stream().anyMatch(this::hasRole);
     }
 
-    /** HR staff and administrators see company-wide data. */
     public boolean isHrOrAdmin() {
         return hasRole(Role.HR);
     }
 
-    // EL-friendly accessors used by the JSP menu
     public boolean isAdmin() {
         return roles.contains(Role.ADMIN);
     }

@@ -42,7 +42,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-/** Employee records: business rules BR-01 … BR-07 and the role-based data scope (UC-12 … UC-16). */
 @ExtendWith(MockitoExtension.class)
 class EmployeeServiceTest {
 
@@ -102,7 +101,7 @@ class EmployeeServiceTest {
             ValidationException e = invalid(Fixtures.employeeForm().baseSalary(vnd(-5_000_000)).build());
 
             assertThat(e.getFieldErrors()).containsEntry("baseSalary", "Lương cơ bản không được âm.");
-            verify(positionDao, never()).findById(anyLong());     // no salary-band message on top of it
+            verify(positionDao, never()).findById(anyLong());
         }
 
         @Test
@@ -202,7 +201,6 @@ class EmployeeServiceTest {
 
         @Test
         void managementCyclesAreDetected() {
-            // 13 → manages 16; making 16 the manager of 13 would close a loop
             when(employeeDao.findById(13)).thenReturn(Optional.of(Fixtures.employeeRecord(13, "EMP0013")));
             when(employeeDao.findById(16)).thenReturn(Optional.of(Fixtures.employeeRecord(16, "EMP0016")));
             when(employeeDao.managerChain(16)).thenReturn(List.of(13L, 11L, 1L));

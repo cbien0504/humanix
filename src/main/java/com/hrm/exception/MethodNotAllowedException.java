@@ -1,6 +1,5 @@
 package com.hrm.exception;
 
-/** The URL exists but not for this HTTP method (HTTP 405). */
 public class MethodNotAllowedException extends AppException {
 
     public MethodNotAllowedException(String method) {

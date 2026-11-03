@@ -89,7 +89,7 @@ public class JdbcAttendanceDao implements AttendanceDao {
                 .andContains(f.keyword(), "e.EmployeeCode", "e.FullName")
                 .andIfPresent("e.DepartmentId = ?", f.departmentId())
                 .andIfPresent("a.EmployeeId = ?", f.employeeId())
-                .andIfPresent("a.WorkDate >= ?", f.from())          // sargable range → IX_Attendance_WorkDate
+                .andIfPresent("a.WorkDate >= ?", f.from())
                 .andIfPresent("a.WorkDate <= ?", f.to())
                 .andIfPresent("a.Status = ?", f.status() == null ? null : f.status().name());
         if (f.teamOfManagerId() != null) {

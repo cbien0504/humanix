@@ -3,7 +3,6 @@ package com.hrm.web.controller;
 import com.hrm.web.BaseController;
 import com.hrm.web.Router;
 
-/** Context root: role-aware dashboard. */
 public class DashboardController extends BaseController {
 
     private static final long serialVersionUID = 1L;

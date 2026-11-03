@@ -1,4 +1,3 @@
-/* Role-aware dashboard (UC-60): personal, team and company sections from /api/dashboard */
 $(function () {
     'use strict';
     var WEEKDAYS = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
@@ -50,7 +49,6 @@ $(function () {
         var C = HRM.charts;
         var S = C.tokens.series;
 
-        // Attendance: stacked columns, 3 series (legend + tooltip of every series at the day + table view)
         var labels = c.attendanceTrend.map(function (d) { return HRM.fmt.date(d.date).substring(0, 5); });
         var keys = [['onTime', 'Đúng giờ'], ['late', 'Đi muộn'], ['halfDay', 'Nửa ngày']];
         new Chart(document.getElementById('attendanceChart'), {
@@ -63,7 +61,7 @@ $(function () {
                         label: k[1], data: c.attendanceTrend.map(function (d) { return d[k[0]]; }),
                         backgroundColor: S[i], maxBarThickness: 24, stack: 'day',
                         borderColor: C.tokens.surface,
-                        borderWidth: i === 0 ? 0 : {bottom: 2, top: 0, left: 0, right: 0},   // 2px surface gap between segments
+                        borderWidth: i === 0 ? 0 : {bottom: 2, top: 0, left: 0, right: 0},
                         borderSkipped: i === 0 ? 'start' : false,
                         borderRadius: top ? {topLeft: 4, topRight: 4} : 0
                     };
@@ -81,7 +79,6 @@ $(function () {
         C.tableView($('#attendanceTable'), ['Ngày', 'Đúng giờ', 'Đi muộn', 'Nửa ngày'],
             c.attendanceTrend.map(function (d) { return [HRM.fmt.date(d.date), d.onTime, d.late, d.halfDay]; }));
 
-        // Departments: ranked horizontal bars, one series → one colour, value at the tip, no legend
         new Chart(document.getElementById('departmentChart'), {
             type: 'bar',
             data: {
@@ -102,12 +99,10 @@ $(function () {
         });
         C.tableView($('#departmentTable'), ['Phòng ban', 'Nhân viên'], c.departments.map(function (d) { return [d.name, d.headcount]; }));
 
-        // Composition: tall segmented bars (no donut)
         C.segmentedBar($('#genderBar'), [{label: 'Nam', value: h.male}, {label: 'Nữ', value: h.female}, {label: 'Khác', value: h.other}]);
         C.segmentedBar($('#statusBar'), [{label: 'Chính thức', value: h.active}, {label: 'Thử việc', value: h.probation},
             {label: 'Nghỉ dài hạn', value: h.onLongLeave}]);
 
-        // Payroll: one series of columns, compact value on each cap
         var periods = c.payrollTrend;
         new Chart(document.getElementById('payrollChart'), {
             type: 'bar',

@@ -1,13 +1,4 @@
 #!/usr/bin/env bash
-# -----------------------------------------------------------------------------
-# Employee data migration from CSV/XLSX (same rules as the web import screen).
-#   export HRM_DB_URL="jdbc:sqlserver://localhost:1433;databaseName=HRM;encrypt=true;trustServerCertificate=true"
-#   export HRM_DB_USER=hrm_app HRM_DB_PASSWORD='...'
-#   scripts/import-employees.sh data/import/employees-sample.csv validate
-#   scripts/import-employees.sh data/import/employees-sample.csv valid-only errors.csv
-# Modes: validate (default, dry run) | valid-only | all-or-nothing
-# Requires Java 17+ and a build (./mvnw package). Exit code 0 = no errors, 1 = row errors.
-# -----------------------------------------------------------------------------
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WEBAPP="${HRM_WEBAPP_DIR:-$ROOT/target/hrm}"

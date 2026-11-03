@@ -2,7 +2,6 @@ package com.hrm.model;
 
 import java.math.BigDecimal;
 
-/** Scores of one criterion in a review (JSP-friendly getters). */
 public class ScoreLine {
 
     private final long criteriaId;

@@ -15,14 +15,6 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Immutable application configuration.
- * <p>
- * Values are read from classpath properties files ({@code db.properties}, {@code app.properties})
- * and may contain placeholders {@code ${NAME:default}}. A placeholder is resolved from the JVM
- * system property {@code NAME}, then the environment variable {@code NAME}, then the default.
- * This keeps credentials out of the repository (NFR-05) while giving sensible local defaults.
- */
 public final class AppConfig {
 
     private static final Pattern PLACEHOLDER = Pattern.compile("\\$\\{([A-Za-z0-9_.]+)(?::([^}]*))?}");
@@ -37,11 +29,6 @@ public final class AppConfig {
         this.values = Collections.unmodifiableMap(resolved);
     }
 
-    /**
-     * Loads and merges the given classpath resources (later files override earlier ones).
-     *
-     * @throws IllegalStateException if a resource is missing or unreadable
-     */
     public static AppConfig load(String... resources) {
         Properties merged = new Properties();
         for (String resource : resources) {
@@ -57,7 +44,6 @@ public final class AppConfig {
         return new AppConfig(merged, AppConfig::systemOrEnv);
     }
 
-    /** Creates a configuration from an in-memory map (tests, CLI tools). */
     public static AppConfig of(Map<String, String> entries) {
         Properties p = new Properties();
         p.putAll(entries);
@@ -95,7 +81,6 @@ public final class AppConfig {
         return find(key).orElse(defaultValue);
     }
 
-    /** @throws IllegalStateException when the key is missing or blank */
     public String require(String key) {
         return find(key).orElseThrow(() -> new IllegalStateException("Missing required configuration: " + key));
     }

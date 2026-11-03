@@ -1,6 +1,5 @@
 package com.hrm.model;
 
-/** Daily attendance status (CK_Attendance_Status). */
 public enum AttendanceStatus {
     PRESENT("Đúng giờ", 1.0),
     LATE("Đi muộn", 1.0),
@@ -19,7 +18,6 @@ public enum AttendanceStatus {
         return label;
     }
 
-    /** Work-day value used by payroll (PRESENT/LATE = 1, HALF_DAY = 0.5). */
     public double getWorkDay() {
         return workDay;
     }

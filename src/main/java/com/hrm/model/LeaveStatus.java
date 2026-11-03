@@ -1,6 +1,5 @@
 package com.hrm.model;
 
-/** Leave request workflow status (CK_LeaveRequests_Status). */
 public enum LeaveStatus {
     PENDING("Chờ duyệt"),
     APPROVED("Đã duyệt"),

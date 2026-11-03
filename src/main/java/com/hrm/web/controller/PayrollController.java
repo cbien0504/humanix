@@ -10,10 +10,6 @@ import com.hrm.web.WebContext;
 
 import java.io.IOException;
 
-/**
- * Payroll pages: {@code /payroll} (periods), {@code /payroll/{id}} (sheet), {@code /payroll/{id}/export},
- * {@code /payroll/my} (my payslips + simulator), {@code /payroll/payslip/{id}} (printable payslip).
- */
 public class PayrollController extends BaseController {
 
     private static final long serialVersionUID = 1L;

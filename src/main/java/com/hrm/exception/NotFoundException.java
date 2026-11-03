@@ -1,6 +1,5 @@
 package com.hrm.exception;
 
-/** Requested resource does not exist or is not visible to the current user (HTTP 404). */
 public class NotFoundException extends AppException {
 
     public NotFoundException(String message) {

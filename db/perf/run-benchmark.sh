@@ -1,9 +1,4 @@
 #!/usr/bin/env bash
-# -----------------------------------------------------------------------------
-# Rebuilds the throw-away database HRM_PERF, loads ~735k attendance rows and
-# runs benchmark.sql. Output: db/perf/results/benchmark-output.txt
-#   DB_HOST=localhost DB_PORT=1433 DB_ADMIN_USER=sa DB_ADMIN_PASSWORD=... ./db/perf/run-benchmark.sh
-# -----------------------------------------------------------------------------
 set -euo pipefail
 PERF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DB_DIR="$(dirname "$PERF_DIR")"

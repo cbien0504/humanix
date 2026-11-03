@@ -21,13 +21,6 @@ import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * The payroll formula exists twice: set-based in sp_CalculateMonthlyPayroll (the real run) and in
- * {@link PayrollCalculator} (simulator, documentation). This test runs the procedure for each seeded
- * month and recomputes every payslip in Java from the same inputs – any divergence in rounding,
- * caps or tax brackets fails the build. Approved/paid months are unlocked first; all of it happens
- * in a transaction that is rolled back, so the stored payroll is never touched.
- */
 class PayrollProcedureParityIT {
 
     private static HikariDataSource dataSource;

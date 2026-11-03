@@ -228,7 +228,7 @@ class PayrollServiceTest {
             Map<String, BigDecimal> changes = new LinkedHashMap<>();
             changes.put("BONUS_RATE", BigDecimal.ONE);
             changes.put(PayrollSettings.PERSONAL_DEDUCTION, vnd(-1));
-            changes.put(PayrollSettings.SOCIAL_INSURANCE_RATE, BigDecimal.valueOf(8));   // 8 instead of 0.08
+            changes.put(PayrollSettings.SOCIAL_INSURANCE_RATE, BigDecimal.valueOf(8));
 
             assertThatThrownBy(() -> service.updateSettings(changes))
                     .isInstanceOfSatisfying(ValidationException.class, e -> assertThat(e.getFieldErrors())
@@ -240,7 +240,7 @@ class PayrollServiceTest {
         void writesAndAuditsOnlyTheValuesThatChanged() {
             when(payrollDao.settings()).thenReturn(Fixtures.payrollSettings());
             Map<String, BigDecimal> changes = new LinkedHashMap<>();
-            changes.put(PayrollSettings.PERSONAL_DEDUCTION, new BigDecimal("15500000.00"));   // unchanged
+            changes.put(PayrollSettings.PERSONAL_DEDUCTION, new BigDecimal("15500000.00"));
             changes.put(PayrollSettings.DEPENDENT_DEDUCTION, vnd(6_500_000));
 
             service.updateSettings(changes);

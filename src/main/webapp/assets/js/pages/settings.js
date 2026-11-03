@@ -1,4 +1,3 @@
-/* Payroll parameters (ADMIN) */
 $(function () {
     'use strict';
     var $form = $('#settingsForm');

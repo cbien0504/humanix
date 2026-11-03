@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/** One attendance row (table Attendance) with the employee's name and department. */
 public class AttendanceRecord {
 
     private long attendanceId;

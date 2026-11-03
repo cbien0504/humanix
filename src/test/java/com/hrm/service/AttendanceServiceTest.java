@@ -43,7 +43,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-/** Check-in/out (server clock), HR corrections and the time-clock bulk upload (UC-20 … UC-22, UC-71). */
 @ExtendWith(MockitoExtension.class)
 class AttendanceServiceTest {
 
@@ -176,7 +175,7 @@ class AttendanceServiceTest {
         private AttendanceService service;
 
         @BeforeEach
-        void createService() {                          // after MockitoExtension has injected the mocks
+        void createService() {
             service = serviceAt(LocalTime.of(10, 0));
         }
 
@@ -208,7 +207,7 @@ class AttendanceServiceTest {
 
             verify(attendanceDao).update(40, THU_29_OCT.atTime(8, 0), THU_29_OCT.atTime(17, 0), AttendanceStatus.PRESENT, 0, "API", null);
             verify(attendanceDao, never()).insert(anyLong(), any(), any(), any(), any(), anyInt(), anyString(), any());
-            verifyNoInteractions(audit);                     // API rows are audited once per batch
+            verifyNoInteractions(audit);
         }
 
         @Test
@@ -262,7 +261,7 @@ class AttendanceServiceTest {
         private AttendanceService service;
 
         @BeforeEach
-        void createService() {                          // after MockitoExtension has injected the mocks
+        void createService() {
             service = serviceAt(LocalTime.of(10, 0));
         }
 
@@ -310,7 +309,7 @@ class AttendanceServiceTest {
         private AttendanceService service;
 
         @BeforeEach
-        void createService() {                          // after MockitoExtension has injected the mocks
+        void createService() {
             service = serviceAt(LocalTime.of(10, 0));
         }
         private final AttendanceFilter october = new AttendanceFilter(null, null, null,

@@ -4,10 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Format-independent report: title, info lines, columns and rows. Exporters ({@link ReportExporter})
- * turn it into Excel or CSV, so adding a new format never touches the report builders (OCP).
- */
 public final class TabularReport {
 
     private final String title;

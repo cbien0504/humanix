@@ -6,10 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-/**
- * Shared, pre-configured Jackson {@link ObjectMapper} (thread-safe once configured):
- * ISO-8601 dates, plain BigDecimal output, unknown JSON properties ignored.
- */
 public final class Json {
 
     private static final ObjectMapper MAPPER = new ObjectMapper()

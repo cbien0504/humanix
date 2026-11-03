@@ -39,17 +39,15 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/** Scoring BR-51/BR-52 and the review workflow (UC-50 … UC-53). */
 @ExtendWith(MockitoExtension.class)
 class PerformanceServiceTest {
 
-    /** Four criteria weighted 30 / 30 / 20 / 20 (the seed has five, 30/25/20/15/10 – the rule is the same). */
     private static final List<ReviewCriterion> CRITERIA = List.of(
             new ReviewCriterion(1, "Kết quả công việc", null, BigDecimal.valueOf(30)),
             new ReviewCriterion(2, "Chuyên môn", null, BigDecimal.valueOf(30)),
             new ReviewCriterion(3, "Tinh thần hợp tác", null, BigDecimal.valueOf(20)),
             new ReviewCriterion(4, "Kỷ luật", null, BigDecimal.valueOf(20)));
-    private static final Map<Long, Integer> SCORES = Map.of(1L, 5, 2L, 4, 3L, 4, 4L, 3);   // → 4.10
+    private static final Map<Long, Integer> SCORES = Map.of(1L, 5, 2L, 4, 3L, 4, 4L, 3);
 
     @Mock
     private PerformanceDao dao;
@@ -95,7 +93,6 @@ class PerformanceServiceTest {
 
         @Test
         void finalScoreBlendsSelfAndManagerScores() {
-            // 0.3 × 4.35 + 0.7 × 4.10 = 4.175 → 4.18
             assertThat(PerformanceScoring.finalScore(new BigDecimal("4.35"), new BigDecimal("4.10"), new BigDecimal("0.30")))
                     .isEqualByComparingTo("4.18");
         }
@@ -132,7 +129,7 @@ class PerformanceServiceTest {
         @Test
         void criteriaWeightsMustTotalOneHundredBeforeOpening() {
             when(dao.cycle(2)).thenReturn(Optional.of(cycle(2, CycleStatus.DRAFT)));
-            when(dao.activeCriteria()).thenReturn(CRITERIA.subList(0, 3));          // 80 %
+            when(dao.activeCriteria()).thenReturn(CRITERIA.subList(0, 3));
 
             assertThatThrownBy(() -> service.openCycle(2))
                     .isInstanceOf(BusinessException.class)
@@ -262,7 +259,7 @@ class PerformanceServiceTest {
             when(dao.review(9)).thenReturn(Optional.of(review(9, 16, 13L, ReviewStatus.PENDING_SELF, CycleStatus.OPEN)));
 
             assertThat(service.view(Fixtures.employee(16), 9).canSelfAssess()).isTrue();
-            assertThat(service.view(Fixtures.manager(13), 9).canManagerAssess()).isFalse();   // not his step yet
+            assertThat(service.view(Fixtures.manager(13), 9).canManagerAssess()).isFalse();
             assertThat(service.view(Fixtures.hr(5), 9).canSelfAssess()).isFalse();
             assertThatThrownBy(() -> service.view(Fixtures.employee(17), 9)).isInstanceOf(ForbiddenException.class);
         }

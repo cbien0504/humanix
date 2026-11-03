@@ -10,7 +10,6 @@ import com.hrm.util.Validator;
 import java.math.BigDecimal;
 import java.util.List;
 
-/** Position (job title & salary band) management (UC-11). */
 public class PositionService {
 
     private final PositionDao positionDao;

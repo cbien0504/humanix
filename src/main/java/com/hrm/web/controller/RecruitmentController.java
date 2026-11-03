@@ -6,7 +6,6 @@ import com.hrm.service.RecruitmentService;
 import com.hrm.web.BaseController;
 import com.hrm.web.Router;
 
-/** Pages {@code /recruitment} (job postings) and {@code /recruitment/jobs/{id}} (pipeline board). */
 public class RecruitmentController extends BaseController {
 
     private static final long serialVersionUID = 1L;

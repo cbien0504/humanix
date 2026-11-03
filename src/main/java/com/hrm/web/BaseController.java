@@ -10,13 +10,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Base class of every controller servlet. Subclasses declare their routes once in
- * {@link #routes(Router)}; {@link #service} dispatches to the matching handler and delegates
- * every exception to {@link ErrorHandler}, so controllers contain no try/catch boilerplate.
- * Dependencies (services) are passed through subclass constructors – controllers are
- * instantiated and registered by {@code AppBootstrap}, not by annotation scanning.
- */
 public abstract class BaseController extends HttpServlet {
 
     private static final long serialVersionUID = 1L;

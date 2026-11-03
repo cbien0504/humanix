@@ -8,10 +8,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-/**
- * Working-day rule BR-13: Monday–Friday except public holidays. Same rule as the SQL function
- * dbo.fn_WorkingDays, used to count the days of a leave request before it is stored.
- */
 public final class WorkingDayCalculator {
 
     private final Set<LocalDate> holidays;
@@ -25,7 +21,6 @@ public final class WorkingDayCalculator {
         return dow != DayOfWeek.SATURDAY && dow != DayOfWeek.SUNDAY && !holidays.contains(date);
     }
 
-    /** Working days in the closed range; empty when {@code to} is before {@code from}. */
     public List<LocalDate> workingDays(LocalDate from, LocalDate to) {
         List<LocalDate> days = new ArrayList<>();
         for (LocalDate d = from; !d.isAfter(to); d = d.plusDays(1)) {

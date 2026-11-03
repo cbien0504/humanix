@@ -1,4 +1,3 @@
-/* My leave: balances, requests, submit and cancel (UC-23, UC-24, UC-26) */
 $(function () {
     'use strict';
     var $form = $('#leaveForm');

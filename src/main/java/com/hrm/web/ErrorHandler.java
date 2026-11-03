@@ -14,16 +14,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
 
-/**
- * Centralised exception handling for all controllers (NFR-10).
- * <ul>
- *   <li>{@link AppException} → its HTTP status and message (4xx: shown to the user).</li>
- *   <li>Unexpected exceptions / 5xx → logged with stack trace; the user only sees a generic
- *       message and the request id to quote to IT support.</li>
- *   <li>AJAX/API requests get an {@link ErrorResponse} JSON body; page requests get the
- *       error JSP.</li>
- * </ul>
- */
 public final class ErrorHandler {
 
     public static final ErrorHandler INSTANCE = new ErrorHandler();

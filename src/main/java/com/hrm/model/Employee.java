@@ -4,11 +4,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
-/**
- * Employee read model (vw_EmployeeDetails): the record plus resolved department, position,
- * manager and account information. Writes go through {@code EmployeeService.EmployeeForm}
- * so clients can never mass-assign computed or protected fields.
- */
 public class Employee {
 
     private long employeeId;
@@ -45,7 +40,6 @@ public class Employee {
     private Instant createdAt;
     private Instant updatedAt;
 
-    /** Removes compensation and bank data for viewers who may not see them. */
     public Employee withoutConfidentialData() {
         baseSalary = null;
         allowance = null;

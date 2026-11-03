@@ -8,7 +8,6 @@ import com.hrm.web.WebContext;
 
 import java.io.IOException;
 
-/** {@code /api/users}: account administration (ADMIN only, enforced by AccessPolicy). */
 public class UserApiController extends BaseController {
 
     private static final long serialVersionUID = 1L;

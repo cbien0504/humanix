@@ -47,19 +47,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Data migration UC-72: every row checked like manual entry (the real {@link EmployeeService}
- * with mocked DAOs), errors reported per row/column, three write modes.
- */
 @ExtendWith(MockitoExtension.class)
 class EmployeeImportServiceTest {
 
     private static final String HEADER = "employee_code,full_name,gender,date_of_birth,email,phone,national_id,"
             + "department_code,position_code,manager_code,hire_date,status,base_salary,allowance,dependents";
-    /** Team lead under existing manager EMP0011, money written the Vietnamese and the US way. */
     private static final String VINH = "EMP0150,Đoàn Quang Vinh,M,1991-02-14,vinh.dq@example.com,0916000150,001091000150,"
             + "IT,TL,EMP0011,2026-11-17,ACTIVE,\"30.000.000\",\"2,000,000\",1";
-    /** Reports to EMP0150, created by the row above; Vietnamese labels and dd/MM/yyyy dates. */
     private static final String THAO = "EMP0151,Mai Phương Thảo,Nữ,05/09/1998,thao.mp@example.com,0916000151,,"
             + "IT,DEV,EMP0150,17/11/2026,Thử việc,15500000,500000,0";
 
@@ -99,7 +93,6 @@ class EmployeeImportServiceTest {
         return service.importFile(new ByteArrayInputStream(csv.getBytes(StandardCharsets.UTF_8)), "nhan-vien.csv", mode);
     }
 
-    /** Makes inserts return ids 150, 151, … and lets the created rows be read back. */
     private void databaseAcceptsInserts() {
         Employee vinh = Fixtures.employeeRecord(150, "EMP0150");
         when(employeeDao.insert(any())).thenReturn(150L, 151L);

@@ -1,6 +1,5 @@
 package com.hrm.model;
 
-/** Review cycle status: DRAFT → OPEN → CLOSED (BR-50). */
 public enum CycleStatus {
     DRAFT("Nháp"),
     OPEN("Đang mở"),

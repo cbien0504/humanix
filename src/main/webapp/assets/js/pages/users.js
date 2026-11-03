@@ -1,4 +1,3 @@
-/* Account administration (UC-04) */
 $(function () {
     'use strict';
     var ROLE_LABELS = {ADMIN: 'Quản trị', HR: 'Nhân sự', MANAGER: 'Quản lý', EMPLOYEE: 'Nhân viên'};

@@ -2,7 +2,6 @@ package com.hrm.model;
 
 import java.time.Instant;
 
-/** Department (table Departments) with its manager's name and current headcount. */
 public class Department {
 
     private long departmentId;

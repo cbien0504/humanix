@@ -1,6 +1,5 @@
 package com.hrm.model;
 
-/** Leave request search criteria (scope fields are set by the service). */
 public record LeaveFilter(String keyword, LeaveStatus status, Long leaveTypeId, Integer year, Long employeeId,
                           Long teamOfManagerId) {
 

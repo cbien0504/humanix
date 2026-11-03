@@ -28,12 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Payroll use cases (UC-30 … UC-35).
- * The monthly calculation itself runs set-based in sp_CalculateMonthlyPayroll; this service
- * orchestrates the period workflow OPEN → CALCULATED → APPROVED → PAID, protects payslip
- * confidentiality and offers the Gross→Net simulator built on {@link PayrollCalculator}.
- */
 public class PayrollService {
 
     private static final DateTimeFormatter STAMP = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -52,7 +46,6 @@ public class PayrollService {
         this.clock = clock;
     }
 
-    /** Body of the simulator. */
     public record SimulationRequest(BigDecimal baseSalary, BigDecimal allowance, Integer dependents) {
     }
 
@@ -64,7 +57,6 @@ public class PayrollService {
         return payrollDao.period(periodId).orElseThrow(() -> NotFoundException.of("kỳ lương", periodId));
     }
 
-    /** UC-30: (re)calculates a month. Future months cannot be calculated. */
     public PayrollPeriod calculate(AuthUser user, int year, int month) {
         if (month < 1 || month > 12 || year < 2000 || year > 2100) {
             throw new ValidationException("month", "Kỳ lương không hợp lệ.");
@@ -72,7 +64,7 @@ public class PayrollService {
         if (YearMonth.of(year, month).isAfter(YearMonth.now(clock))) {
             throw new BusinessException("Không thể tính lương cho tháng trong tương lai.");
         }
-        PayrollPeriod period = payrollDao.calculate(year, month, user.getUsername());   // SP throws 51103 if frozen
+        PayrollPeriod period = payrollDao.calculate(year, month, user.getUsername());
         audit.record("PAYROLL_CALCULATED", "PayrollPeriod", period.getPeriodId(),
                 period.getLabel() + ": " + period.getEmployeeCount() + " NV, net " + period.getTotalNet().toPlainString());
         return period;
@@ -97,7 +89,6 @@ public class PayrollService {
         return payrollDao.departmentTotals(periodId);
     }
 
-    /** A payslip is visible to HR, or to its owner once the period is approved. */
     public Payslip payslip(AuthUser user, long payrollId) {
         Payslip p = payrollDao.payslip(payrollId).orElseThrow(() -> NotFoundException.of("phiếu lương", payrollId));
         if (user.isHrOrAdmin()) {
@@ -120,7 +111,6 @@ public class PayrollService {
         return payrollDao.payslipsOfEmployee(user.getEmployeeId());
     }
 
-    /** UC-35: estimate net salary for a full month with the current parameters. */
     public PayrollCalculator.Result simulate(SimulationRequest req) {
         BigDecimal allowance = req.allowance() == null ? BigDecimal.ZERO : req.allowance();
         int dependents = req.dependents() == null ? 0 : req.dependents();
@@ -142,7 +132,6 @@ public class PayrollService {
         return payrollDao.settingDefinitions();
     }
 
-    /** ADMIN: updates payroll parameters (only known keys, validated ranges). */
     public List<SettingDefinition> updateSettings(Map<String, BigDecimal> changes) {
         Map<String, BigDecimal> current = payrollDao.settings().values();
         Validator v = new Validator();
@@ -169,7 +158,6 @@ public class PayrollService {
         return payrollDao.settingDefinitions();
     }
 
-    /** Payroll sheet of a period for Excel/CSV export (UC-33). */
     public TabularReport payrollSheet(long periodId) {
         PayrollPeriod p = period(periodId);
         ZoneId zone = clock.getZone();

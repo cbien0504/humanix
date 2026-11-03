@@ -12,7 +12,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** BR-11/BR-12 (work starts 08:30, 5 minutes grace, under 4 hours = half day) and BR-13 working days. */
 class AttendancePolicyTest {
 
     private static final LocalDate DAY = LocalDate.of(2026, 11, 2);
@@ -23,8 +22,8 @@ class AttendancePolicyTest {
     @CsvSource({
             "07:45, PRESENT, 0",
             "08:30, PRESENT, 0",
-            "08:35, PRESENT, 0",     // last minute of the grace period
-            "08:36, LATE, 6",        // late minutes count from 08:30, not from the end of the grace
+            "08:35, PRESENT, 0",
+            "08:36, LATE, 6",
             "10:05, LATE, 95"
     })
     void checkInStatus(LocalTime time, AttendanceStatus status, int lateMinutes) {
@@ -39,8 +38,8 @@ class AttendancePolicyTest {
             "08:20, 17:30, PRESENT",
             "08:50, 17:40, LATE",
             "08:00, 11:30, HALF_DAY",
-            "08:00, 12:00, PRESENT",    // exactly 4 hours is not a half day
-            "09:00, 12:00, HALF_DAY"    // half day wins over late
+            "08:00, 12:00, PRESENT",
+            "09:00, 12:00, HALF_DAY"
     })
     void finalStatusOfADay(LocalTime in, LocalTime out, AttendanceStatus expected) {
         assertThat(policy.evaluateDay(DAY.atTime(in), DAY.atTime(out))).isEqualTo(expected);
@@ -53,8 +52,8 @@ class AttendancePolicyTest {
 
     @Test
     void workingDaysSkipWeekendsAndHolidays() {
-        LocalDate first = LocalDate.of(2026, 11, 1);           // Sunday
-        LocalDate last = LocalDate.of(2026, 11, 30);           // Monday
+        LocalDate first = LocalDate.of(2026, 11, 1);
+        LocalDate last = LocalDate.of(2026, 11, 30);
         LocalDate weekdayHoliday = LocalDate.of(2026, 11, 20);
         LocalDate weekendHoliday = LocalDate.of(2026, 11, 21);
 

@@ -11,7 +11,6 @@ import java.sql.SQLTransientConnectionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** SQL Server error → application exception with a user-friendly message (no raw SQL shown to users). */
 class SqlErrorTranslatorTest {
 
     private final SqlErrorTranslator translator = new SqlErrorTranslator();

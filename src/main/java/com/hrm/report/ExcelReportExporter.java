@@ -24,11 +24,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Excel (.xlsx) exporter on Apache POI's streaming workbook (SXSSF – constant memory for large
- * sheets): title, info lines, styled header with auto-filter, number formats per column type,
- * frozen header and a totals row using SUM formulas (the numbers stay live if HR edits cells).
- */
 public class ExcelReportExporter implements ReportExporter {
 
     @Override
@@ -121,7 +116,7 @@ public class ExcelReportExporter implements ReportExporter {
         } else if (value instanceof Boolean b) {
             cell.setCellValue(b ? "Có" : "Không");
         } else {
-            cell.setCellValue(value.toString());   // always a string cell – never interpreted as a formula
+            cell.setCellValue(value.toString());
         }
     }
 

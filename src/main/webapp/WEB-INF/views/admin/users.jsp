@@ -33,7 +33,6 @@
         <div class="data-table-footer"></div>
     </div>
 
-    <!-- create / edit modal -->
     <div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <form class="modal-content" id="userForm" novalidate>
@@ -77,7 +76,6 @@
         </div>
     </div>
 
-    <!-- one-time temporary password -->
     <div class="modal fade" id="passwordModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">

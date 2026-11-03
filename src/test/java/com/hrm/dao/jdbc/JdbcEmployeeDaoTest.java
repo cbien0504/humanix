@@ -24,10 +24,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * DAO test with a mocked JDBC driver: checks the SQL that reaches the database. A hostile keyword
- * and sort key must never become part of the statement text (SQL injection, NFR-02).
- */
 @ExtendWith(MockitoExtension.class)
 class JdbcEmployeeDaoTest {
 
@@ -75,12 +71,12 @@ class JdbcEmployeeDaoTest {
         assertThat(total).startsWith("SELECT COUNT(*) FROM dbo.vw_EmployeeDetails AS e WHERE (");
 
         String pattern = "%" + HOSTILE + "%";
-        verify(ps, times(2)).setString(1, pattern);              // once for the page, once for the count
+        verify(ps, times(2)).setString(1, pattern);
         verify(ps, times(2)).setString(4, pattern);
         verify(ps, times(2)).setString(5, "ACTIVE");
         verify(ps, times(2)).setLong(6, 11L);
-        verify(ps).setInt(9, 10);                                // OFFSET of page 2
-        verify(ps).setInt(10, 10);                               // FETCH NEXT
+        verify(ps).setInt(9, 10);
+        verify(ps).setInt(10, 10);
         assertThat(page.totalItems()).isEqualTo(7);
         assertThat(page.items()).isEmpty();
     }

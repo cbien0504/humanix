@@ -15,18 +15,6 @@ import java.time.YearMonth;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 
-/**
- * REST resource {@code /api/attendance}.
- * <pre>
- * GET  /api/attendance/today            my record today + server time
- * POST /api/attendance/check-in         POST /api/attendance/check-out
- * GET  /api/attendance/my?month=2026-10 my month: summary + records
- * GET  /api/attendance?from=&to=&departmentId=&employeeId=&status=&keyword=&page=&size=
- * POST /api/attendance                  create/correct one day (HR, time clock)
- * POST /api/attendance/bulk             up to 1000 punches, per-element result (time clock)
- * DELETE /api/attendance/{id}           (HR)
- * </pre>
- */
 public class AttendanceApiController extends BaseController {
 
     private static final long serialVersionUID = 1L;

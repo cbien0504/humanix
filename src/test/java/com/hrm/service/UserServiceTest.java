@@ -33,7 +33,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/** Account administration (UC-04): one-time temporary passwords, no self-lockout for admins. */
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
@@ -71,7 +70,7 @@ class UserServiceTest {
 
         assertThat(created.temporaryPassword()).hasSize(12);
         assertThat(policy.check(created.temporaryPassword(), "nam.lh")).isNull();
-        verify(userDao).create("nam.lh", "hash:" + created.temporaryPassword(), 13L, true);   // only the hash is stored
+        verify(userDao).create("nam.lh", "hash:" + created.temporaryPassword(), 13L, true);
         verify(userDao).replaceRoles(40, EnumSet.of(Role.MANAGER));
     }
 

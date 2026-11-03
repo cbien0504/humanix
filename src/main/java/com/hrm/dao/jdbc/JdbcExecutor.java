@@ -22,19 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-/**
- * Thin JDBC template used by every DAO.
- * <ul>
- *   <li>Always uses {@link PreparedStatement}/{@link CallableStatement} with bound parameters.</li>
- *   <li>Closes resources (try-with-resources) and translates {@link SQLException} via
- *       {@link SqlErrorTranslator}.</li>
- *   <li>Implements {@link TransactionManager}: inside {@link #inTransaction} all DAO calls of
- *       the current thread share one connection.</li>
- *   <li>Before writes, sets {@code SESSION_CONTEXT('app_user')} so database triggers can record
- *       which application user changed the data (salary history, candidate pipeline).</li>
- *   <li>Logs every statement at DEBUG and statements slower than the threshold at WARN.</li>
- * </ul>
- */
 public class JdbcExecutor implements TransactionManager {
 
     private static final Logger log = LoggerFactory.getLogger(JdbcExecutor.class);
@@ -57,8 +44,6 @@ public class JdbcExecutor implements TransactionManager {
         this.slowQueryMs = slowQueryMs;
     }
 
-    // ------------------------------------------------------------------ queries
-
     public <T> List<T> query(String sql, RowMapper<T> mapper, Object... params) {
         return run(sql, false, con -> {
             try (PreparedStatement ps = con.prepareStatement(sql)) {
@@ -79,7 +64,6 @@ public class JdbcExecutor implements TransactionManager {
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }
 
-    /** First column of the first row, or {@code null} when there is no row. */
     public <T> T queryScalar(String sql, Class<T> type, Object... params) {
         return queryOne(sql, rs -> rs.getObject(1, type), params).orElse(null);
     }
@@ -88,8 +72,6 @@ public class JdbcExecutor implements TransactionManager {
         Number n = queryOne(sql, rs -> (Number) rs.getObject(1), params).orElse(0);
         return n.longValue();
     }
-
-    // ------------------------------------------------------------------ writes
 
     public int update(String sql, Object... params) {
         return run(sql, true, con -> {
@@ -100,7 +82,6 @@ public class JdbcExecutor implements TransactionManager {
         });
     }
 
-    /** Executes an INSERT and returns the generated identity value. */
     public long insert(String sql, Object... params) {
         return run(sql, true, con -> {
             try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -131,7 +112,6 @@ public class JdbcExecutor implements TransactionManager {
         });
     }
 
-    /** Calls a stored procedure, e.g. {@code {call dbo.sp_X(?, ?)}}, and maps its first result set. */
     public <T> List<T> call(String call, RowMapper<T> mapper, Object... params) {
         return run(call, true, con -> {
             try (CallableStatement cs = con.prepareCall(call)) {
@@ -153,17 +133,14 @@ public class JdbcExecutor implements TransactionManager {
         });
     }
 
-    /** Escape hatch for multi-statement work on one connection. */
     public <T> T execute(String description, boolean write, ConnectionCallback<T> callback) {
         return run(description, write, callback);
     }
 
-    // ------------------------------------------------------------------ transactions
-
     @Override
     public <T> T inTransaction(Supplier<T> work) {
         if (txConnection.get() != null) {
-            return work.get();                       // join the outer transaction
+            return work.get();
         }
         Connection con;
         try {
@@ -195,8 +172,6 @@ public class JdbcExecutor implements TransactionManager {
         }
     }
 
-    // ------------------------------------------------------------------ internals
-
     private <T> T run(String sql, boolean write, ConnectionCallback<T> callback) {
         long start = System.nanoTime();
         boolean noConnection = false;
@@ -214,8 +189,6 @@ public class JdbcExecutor implements TransactionManager {
         } catch (SQLException e) {
             RuntimeException translated = translator.translate(e, sql);
             if (translated instanceof DatabaseUnavailableException) {
-                // an outage is reported once per request by ErrorHandler and once per state change by
-                // HealthController – logging it here too tripled the ERROR lines of every failed request
                 noConnection = true;
                 log.debug("No database connection for {}: {}", flatten(sql), e.getMessage());
             } else if (translated instanceof AppException app && app.getHttpStatus() >= 500) {
@@ -226,7 +199,7 @@ public class JdbcExecutor implements TransactionManager {
             throw translated;
         } finally {
             long ms = (System.nanoTime() - start) / 1_000_000;
-            if (ms >= slowQueryMs && !noConnection) {           // waiting for the pool is not a slow query
+            if (ms >= slowQueryMs && !noConnection) {
                 log.warn("Slow SQL ({} ms): {}", ms, flatten(sql));
             } else if (log.isDebugEnabled()) {
                 log.debug("SQL ({} ms): {}", ms, flatten(sql));
@@ -263,7 +236,7 @@ public class JdbcExecutor implements TransactionManager {
             } else if (p instanceof Enum<?> e) {
                 ps.setString(index, e.name());
             } else {
-                ps.setObject(index, p);    // LocalDate, LocalDateTime, LocalTime, Short, Double…
+                ps.setObject(index, p);
             }
         }
     }

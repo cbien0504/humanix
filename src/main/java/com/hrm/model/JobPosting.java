@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
-/** Job posting (table JobPostings) with candidate counters. */
 public class JobPosting {
 
     private long jobPostingId;

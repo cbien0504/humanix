@@ -24,10 +24,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * HR reports (UC-61, UC-62) backed by stored procedures, plus their Excel/CSV versions.
- * Managers only see the departments they run (or work in).
- */
 public class ReportService {
 
     private static final DateTimeFormatter DMY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -122,7 +118,6 @@ public class ReportService {
         return r;
     }
 
-    /** HR: employee list with the filters of the employee screen. */
     public TabularReport employeeList(EmployeeFilter filter) {
         TabularReport r = new TabularReport("DANH SÁCH NHÂN VIÊN", List.of("Xuất ngày " + DMY.format(LocalDate.now(clock))),
                 List.of(ReportColumn.text("Mã NV", 10), ReportColumn.text("Họ tên", 24), ReportColumn.text("Giới tính", 9),
@@ -139,7 +134,6 @@ public class ReportService {
         return r;
     }
 
-    /** Departments a manager runs, plus the one he/she works in. */
     Set<Long> scope(AuthUser user) {
         if (!user.hasRole(Role.MANAGER) || user.getEmployeeId() == null) {
             throw new ForbiddenException();

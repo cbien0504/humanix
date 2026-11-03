@@ -9,10 +9,6 @@ import com.hrm.web.WebContext;
 
 import java.io.IOException;
 
-/**
- * {@code /api/jobs}: GET / · GET /{id} · GET /{id}/pipeline · POST / · PUT /{id} ·
- * POST /{id}/status {"status":"OPEN"} · DELETE /{id}. Writes require HR (AccessPolicy).
- */
 public class JobApiController extends BaseController {
 
     private static final long serialVersionUID = 1L;
@@ -23,7 +19,6 @@ public class JobApiController extends BaseController {
         this.service = service;
     }
 
-    /** Body of the status change. */
     public record StatusChange(JobStatus status) {
     }
 

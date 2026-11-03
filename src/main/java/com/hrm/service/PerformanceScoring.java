@@ -7,12 +7,6 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Scoring rules BR-51/BR-52 (pure functions):
- * overall = Σ(score × weight) / Σ(weight) over the criteria, rounded to 2 decimals;
- * final = selfWeight × self + (1 − selfWeight) × manager;
- * rating A ≥ 4.5 · B ≥ 3.5 · C ≥ 2.5 · D ≥ 1.5 · E below.
- */
 public final class PerformanceScoring {
 
     private PerformanceScoring() {

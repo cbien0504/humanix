@@ -104,8 +104,6 @@ public class JdbcReportDao implements ReportDao {
 
     @Override
     public Map<String, Integer> teamSummary(long managerId, LocalDate today) {
-        // LEFT JOIN instead of SUM(CASE WHEN EXISTS ...) – SQL Server error 130 forbids aggregating a subquery;
-        // UQ_Attendance_EmployeeDate guarantees at most one joined row per employee
         return jdbc.queryOne("""
                 SELECT COUNT(*) AS teamSize, COUNT(a.AttendanceId) AS checkedIn
                 FROM dbo.Employees AS e
@@ -115,7 +113,6 @@ public class JdbcReportDao implements ReportDao {
                 JdbcReportDao::row, today, managerId, managerId, managerId).orElse(Map.of());
     }
 
-    /** Maps every column of the row to an int (NULL → 0). */
     private static Map<String, Integer> row(ResultSet rs) throws SQLException {
         Map<String, Integer> m = new LinkedHashMap<>();
         int n = rs.getMetaData().getColumnCount();

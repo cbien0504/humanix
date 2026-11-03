@@ -1,11 +1,5 @@
 package com.hrm.security;
 
-/**
- * Holds the principal of the request being processed on the current thread.
- * Set by the authentication filter and cleared when the request completes, it lets
- * infrastructure code (audit log, SESSION_CONTEXT for triggers) know the acting user without
- * passing it through every method signature.
- */
 public final class UserContext {
 
     private static final ThreadLocal<AuthUser> CURRENT = new ThreadLocal<>();

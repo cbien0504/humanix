@@ -28,16 +28,13 @@ public interface PerformanceDao {
 
     int changeCycleStatus(long cycleId, CycleStatus expected, CycleStatus target);
 
-    /** Creates missing reviews for eligible employees (working, hired before period end, with a reviewer). */
     int generateReviews(long cycleId);
 
     List<ReviewCriterion> activeCriteria();
 
-    /** Filters are optional; {@code reviewerId}/{@code employeeId} narrow the scope. */
     Page<PerformanceReview> searchReviews(Long cycleId, ReviewStatus status, String keyword, Long employeeId,
                                           Long reviewerId, PageRequest page);
 
-    /** Review with its score lines. */
     Optional<PerformanceReview> review(long reviewId);
 
     int saveSelfAssessment(long reviewId, Map<Long, Integer> scores, String comment, BigDecimal selfScore);

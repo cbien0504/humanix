@@ -5,7 +5,6 @@ import com.hrm.model.ValidationCheck;
 
 import java.util.List;
 
-/** Runs the integrity checks of sp_RunDataValidation on demand (UC-06). */
 public class DataQualityService {
 
     private final DataQualityDao dao;

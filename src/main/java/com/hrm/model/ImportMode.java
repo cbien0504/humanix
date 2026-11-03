@@ -2,13 +2,9 @@ package com.hrm.model;
 
 import java.util.Locale;
 
-/** How an import file is applied. */
 public enum ImportMode {
-    /** Validate every row, write nothing (dry run). */
     VALIDATE_ONLY,
-    /** Import valid rows, report the invalid ones. */
     VALID_ONLY,
-    /** Import only if every row is valid – one transaction. */
     ALL_OR_NOTHING;
 
     public static ImportMode parse(String value) {

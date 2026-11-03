@@ -1,4 +1,3 @@
-/* Login page: client-side required check, show/hide password, demo account shortcuts */
 $(function () {
     'use strict';
     var $form = $('#loginForm');
@@ -17,8 +16,6 @@ $(function () {
     $('.demo-login').on('click', function () {
         $('#username').val($(this).data('user'));
         $('#password').val('Demo@123');
-        // native requestSubmit() fires the submit event and performs a real navigation;
-        // jQuery's trigger('submit') → form.submit() proved unreliable here
         var form = $form[0];
         if (typeof form.requestSubmit === 'function') {
             form.requestSubmit();

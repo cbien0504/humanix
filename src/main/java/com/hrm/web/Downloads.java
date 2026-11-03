@@ -6,7 +6,6 @@ import com.hrm.report.TabularReport;
 import java.io.IOException;
 import java.io.OutputStream;
 
-/** Streams a {@link TabularReport} as an Excel ({@code ?format=xlsx}, default) or CSV download. */
 public final class Downloads {
 
     private Downloads() {

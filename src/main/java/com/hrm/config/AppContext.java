@@ -55,11 +55,6 @@ import java.time.Clock;
 import java.time.LocalTime;
 import java.time.ZoneId;
 
-/**
- * Composition root: creates and wires every long-lived object of the application with plain
- * constructor injection (no DI framework). Controllers and filters receive their dependencies
- * from here in {@link AppBootstrap}; tests build the same classes with mocks instead.
- */
 public final class AppContext implements AutoCloseable {
 
     public static final String ATTRIBUTE = AppContext.class.getName();
@@ -69,12 +64,10 @@ public final class AppContext implements AutoCloseable {
     private final HikariDataSource dataSource;
     private final JdbcExecutor jdbc;
 
-    // security
     private final PasswordHasher passwordHasher;
     private final PasswordPolicy passwordPolicy;
     private final AccessPolicy accessPolicy = new AccessPolicy();
 
-    // services
     private final AuditService auditService;
     private final AuthService authService;
     private final UserService userService;
@@ -98,7 +91,6 @@ public final class AppContext implements AutoCloseable {
         this.dataSource = DataSourceFactory.create(config);
         this.jdbc = new JdbcExecutor(dataSource, UserContext::currentUsername, config.getLong("db.slowQueryMs", 500));
 
-        // DAOs
         UserDao userDao = new JdbcUserDao(jdbc);
         AuditDao auditDao = new JdbcAuditDao(jdbc, zone);
         DataQualityDao dataQualityDao = new JdbcDataQualityDao(jdbc);
@@ -113,11 +105,9 @@ public final class AppContext implements AutoCloseable {
         PerformanceDao performanceDao = new JdbcPerformanceDao(jdbc);
         ReportDao reportDao = new JdbcReportDao(jdbc);
 
-        // security
         this.passwordHasher = new BCryptPasswordHasher(config.getInt("security.bcryptCost", 10));
         this.passwordPolicy = new PasswordPolicy(config.getInt("security.passwordMinLength", 8));
 
-        // services
         this.auditService = new AuditService(auditDao);
         this.authService = new AuthService(userDao, passwordHasher, passwordPolicy, auditService, clock,
                 config.getInt("security.maxFailedLogins", 5), config.getInt("security.lockMinutes", 15));
@@ -151,7 +141,6 @@ public final class AppContext implements AutoCloseable {
         return config;
     }
 
-    /** Company clock (Asia/Ho_Chi_Minh) – inject it instead of calling LocalDate.now(). */
     public Clock clock() {
         return clock;
     }

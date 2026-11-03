@@ -39,7 +39,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/** Departments (UC-10), positions & salary bands (UC-11), audit trail and data-quality checks (UC-06). */
 @ExtendWith(MockitoExtension.class)
 class OrganisationServicesTest {
 

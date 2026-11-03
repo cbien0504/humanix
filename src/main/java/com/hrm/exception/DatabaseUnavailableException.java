@@ -1,6 +1,5 @@
 package com.hrm.exception;
 
-/** The database cannot be reached (network down, server stopped, pool exhausted) – HTTP 503. */
 public class DatabaseUnavailableException extends DataAccessException {
 
     public DatabaseUnavailableException(Throwable cause) {

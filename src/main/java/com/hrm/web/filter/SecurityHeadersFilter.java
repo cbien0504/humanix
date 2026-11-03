@@ -7,12 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-/**
- * Adds defensive HTTP headers (NFR-03).
- * The Content-Security-Policy only allows scripts from this origin – there is no inline
- * JavaScript in any JSP – so even if an XSS payload slipped through output escaping it could
- * not execute. Dynamic responses are marked {@code no-store} (personal data, salaries).
- */
 public class SecurityHeadersFilter extends HttpFilter {
 
     static final String CSP = String.join("; ",

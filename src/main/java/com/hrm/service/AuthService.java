@@ -16,16 +16,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Authentication use cases (UC-01, UC-03).
- * <ul>
- *   <li>Unknown user and wrong password produce the same message; a dummy BCrypt check keeps
- *       response times equal so usernames cannot be enumerated by timing.</li>
- *   <li>After {@code maxFailedLogins} consecutive failures the account is locked for
- *       {@code lockMinutes}; while locked the password is not even checked.</li>
- *   <li>The account status (disabled) is only revealed to someone who knows the password.</li>
- * </ul>
- */
 public class AuthService {
 
     static final String BAD_CREDENTIALS = "Tên đăng nhập hoặc mật khẩu không đúng.";
@@ -38,7 +28,6 @@ public class AuthService {
     private final Clock clock;
     private final int maxFailedLogins;
     private final Duration lockDuration;
-    /** Real hash of a random string, used to spend the same time when the username is unknown. */
     private final String dummyHash;
 
     public AuthService(UserDao userDao, PasswordHasher hasher, PasswordPolicy policy, AuditService audit, Clock clock,
@@ -53,7 +42,6 @@ public class AuthService {
         this.dummyHash = hasher.hash(UUID.randomUUID().toString());
     }
 
-    /** Result of a successful login. */
     public record LoginResult(AuthUser user, boolean mustChangePassword) {
     }
 

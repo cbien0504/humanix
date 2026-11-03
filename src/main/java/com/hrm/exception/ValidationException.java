@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** Invalid user input (HTTP 400). Carries one message per offending field. */
 public class ValidationException extends AppException {
 
     private final Map<String, String> fieldErrors;

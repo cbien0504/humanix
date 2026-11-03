@@ -8,7 +8,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
-/** Null-safe {@link ResultSet} accessors using java.time types. */
 public final class Rows {
 
     private Rows() {
@@ -36,7 +35,6 @@ public final class Rows {
         return rs.getObject(column, LocalDateTime.class);
     }
 
-    /** Reads a DATETIME2 column stored in UTC (SYSUTCDATETIME()) as an {@link Instant}. */
     public static Instant instant(ResultSet rs, String column) throws SQLException {
         LocalDateTime utc = rs.getObject(column, LocalDateTime.class);
         return utc == null ? null : utc.toInstant(ZoneOffset.UTC);

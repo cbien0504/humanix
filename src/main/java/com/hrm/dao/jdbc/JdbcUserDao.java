@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-/** JDBC implementation of {@link UserDao}. Roles are aggregated with STRING_AGG in one query. */
 public class JdbcUserDao implements UserDao {
 
     private static final String SELECT = """
@@ -124,7 +123,6 @@ public class JdbcUserDao implements UserDao {
 
     @Override
     public int recordLoginFailure(long userId, int maxFailures, Instant lockUntil) {
-        // single statement: no lost update when two failed logins race
         Integer count = jdbc.queryOne("""
                 UPDATE dbo.Users
                    SET FailedLoginCount = FailedLoginCount + 1,

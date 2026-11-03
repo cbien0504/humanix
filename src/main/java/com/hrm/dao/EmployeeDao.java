@@ -15,7 +15,6 @@ public interface EmployeeDao {
 
     Page<Employee> search(EmployeeFilter filter, PageRequest page);
 
-    /** All employees matching the filter (export), ordered by code. */
     List<Employee> findAll(EmployeeFilter filter);
 
     Optional<Employee> findById(long id);
@@ -28,23 +27,17 @@ public interface EmployeeDao {
 
     void update(long id, EmployeeForm form);
 
-    /** Deletes the employee, its unused leave balances and (by cascade) its login. */
     void delete(long id);
 
-    /** Labels of business data that reference the employee (empty = safe to delete). */
     List<String> dependencies(long id);
 
     List<SalaryChange> salaryHistory(long id);
 
-    /** Next free code with the given prefix, e.g. EMP0037. */
     String nextCode(String prefix);
 
-    /** True when {@code employeeId} reports to the manager directly or works in a department he/she manages. */
     boolean isInTeam(long managerEmployeeId, long employeeId);
 
-    /** All managers above the employee (direct manager first). */
     List<Long> managerChain(long employeeId);
 
-    /** Employees not terminated, for drop-downs. */
     List<EmployeeOption> options();
 }

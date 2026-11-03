@@ -1,4 +1,3 @@
-/* Payroll periods: calculate, approve, mark paid, export (UC-30 … UC-33) */
 $(function () {
     'use strict';
     var now = new Date();

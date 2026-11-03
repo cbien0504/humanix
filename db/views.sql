@@ -1,15 +1,6 @@
-/* =============================================================================
-   HRM System – views
-   ============================================================================= */
 SET NOCOUNT ON;
 GO
 
-/* -----------------------------------------------------------------------------
-   vw_EmployeeDetails – one row per employee with every lookup resolved.
-   Used by the employee list/search API and exports. The LEFT JOIN to Users is
-   safe (no row multiplication) thanks to the filtered unique index
-   UX_Users_EmployeeId.
-   ----------------------------------------------------------------------------- */
 CREATE OR ALTER VIEW dbo.vw_EmployeeDetails
 AS
 SELECT e.EmployeeId,
@@ -61,13 +52,6 @@ LEFT JOIN dbo.Users     AS u ON u.EmployeeId = e.EmployeeId
 CROSS JOIN (SELECT CAST(SYSDATETIME() AS DATE) AS Today) AS t;
 GO
 
-/* -----------------------------------------------------------------------------
-   vw_MonthlyAttendanceSummary – per employee per month: attendance counters
-   from Attendance plus approved leave days (split by month, working days only).
-   Filter on EmployeeId for best performance; for company-wide date-range
-   reports use sp_GetAttendanceReport (sargable range on WorkDate) – see
-   docs/03-query-optimization.md, case 2.
-   ----------------------------------------------------------------------------- */
 CREATE OR ALTER VIEW dbo.vw_MonthlyAttendanceSummary
 AS
 WITH Att AS (
@@ -120,10 +104,6 @@ JOIN dbo.Employees   AS e ON e.EmployeeId   = k.EmployeeId
 JOIN dbo.Departments AS d ON d.DepartmentId = e.DepartmentId;
 GO
 
-/* -----------------------------------------------------------------------------
-   vw_PayrollDetails – payslip lines with employee, department and period info
-   (payroll sheet screen, Excel export, "my payslips").
-   ----------------------------------------------------------------------------- */
 CREATE OR ALTER VIEW dbo.vw_PayrollDetails
 AS
 SELECT pr.PayrollId,

@@ -1,6 +1,5 @@
 package com.hrm.exception;
 
-/** The caller is authenticated but not allowed to perform the operation (HTTP 403). */
 public class ForbiddenException extends AppException {
 
     public ForbiddenException(String message) {

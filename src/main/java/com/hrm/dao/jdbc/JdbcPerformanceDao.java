@@ -141,7 +141,6 @@ public class JdbcPerformanceDao implements PerformanceDao {
 
     @Override
     public int generateReviews(long cycleId) {
-        // reviewer = direct manager, else the department manager – never the employee him/herself
         return jdbc.update("""
                 INSERT INTO dbo.PerformanceReviews (CycleId, EmployeeId, ReviewerId, Status)
                 SELECT c.CycleId, e.EmployeeId, rv.ReviewerId, 'PENDING_SELF'

@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Map;
 
-/** {@code /profile/*}: self-service pages of the signed-in user. */
 public class ProfileController extends BaseController {
 
     private static final long serialVersionUID = 1L;
@@ -26,7 +25,6 @@ public class ProfileController extends BaseController {
         this.employeeService = employeeService;
     }
 
-    /** JSON body of the change-password form. */
     public record ChangePasswordRequest(String currentPassword, String newPassword, String confirmPassword) {
     }
 

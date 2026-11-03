@@ -24,11 +24,6 @@ import java.util.Locale;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * The database is the last line of defence: constraints and triggers hold even when the service
- * layer is bypassed (scripts, a buggy future feature). Each case runs against the real schema
- * through the real DAOs and is rolled back.
- */
 class DatabaseRulesIT {
 
     private static HikariDataSource dataSource;

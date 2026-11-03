@@ -1,4 +1,3 @@
-/* Change password (UC-03) */
 $(function () {
     'use strict';
     var $form = $('#passwordForm');

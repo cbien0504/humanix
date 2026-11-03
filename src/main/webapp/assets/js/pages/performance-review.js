@@ -1,4 +1,3 @@
-/* Self-assessment / manager scoring form (UC-51, UC-52) */
 $(function () {
     'use strict';
     var $page = $('#reviewPage');

@@ -15,12 +15,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * {@code GET /health} – liveness/readiness probe for Docker, load balancers and monitoring.
- * Returns 200 when the database answers, 503 otherwise (never throws). Probes run every few
- * seconds, so only a change of state is logged: one ERROR when the database goes away, one INFO
- * when it is back.
- */
 public class HealthController extends BaseController {
 
     private static final long serialVersionUID = 1L;

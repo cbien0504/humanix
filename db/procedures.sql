@@ -1,31 +1,6 @@
-/* =============================================================================
-   HRM System – stored procedures
-   Error numbers raised with THROW (translated to business errors in Java):
-     511xx payroll · 512xx attendance report · 513xx leave balances
-   All procedures are set-based (no cursors) and run their writes in one
-   transaction with SET XACT_ABORT ON.
-   ============================================================================= */
 SET NOCOUNT ON;
 GO
 
-/* -----------------------------------------------------------------------------
-   sp_CalculateMonthlyPayroll – calculates the payroll of a month for every
-   employee employed during that month (BR-30 … BR-34).
-
-     Standard days   = working days of the month (fn_WorkingDays)
-     Paid days       = min(standard, worked days + approved paid-leave days)
-     Salary/allowance= amount × paid days / standard days
-     Insurance       = 8% + 1.5% of min(base, cap × reference salary)
-                     + 1% of min(base, cap × regional minimum wage)
-                       – none if unpaid days ≥ threshold or insurance > gross
-     Taxable income  = max(0, gross − insurance − personal − dependants × deduction)
-     PIT             = progressive brackets (TaxBrackets)
-     Net             = gross − insurance − PIT
-   Every amount is rounded to whole VND. The Java class PayrollCalculator
-   implements the same formula (gross→net simulator) and an integration test
-   asserts both produce identical payslips.
-   Re-runnable while the period is OPEN/CALCULATED; APPROVED/PAID are frozen.
-   ----------------------------------------------------------------------------- */
 CREATE OR ALTER PROCEDURE dbo.sp_CalculateMonthlyPayroll
     @PeriodYear   SMALLINT,
     @PeriodMonth  TINYINT,
@@ -47,7 +22,6 @@ BEGIN
             @ReferenceSalary DECIMAL(18,4), @RegionalMinWage DECIMAL(18,4), @CapMultiplier DECIMAL(18,4),
             @PersonalDeduction DECIMAL(18,4), @DependentDeduction DECIMAL(18,4), @NoInsuranceDays DECIMAL(18,4);
 
-    -- one lookup per key on the tiny PK table (avoids NULL-elimination warnings of MAX(CASE ...))
     SELECT @SiRate             = (SELECT SettingValue FROM dbo.PayrollSettings WHERE SettingKey = 'SOCIAL_INSURANCE_RATE'),
            @HiRate             = (SELECT SettingValue FROM dbo.PayrollSettings WHERE SettingKey = 'HEALTH_INSURANCE_RATE'),
            @UiRate             = (SELECT SettingValue FROM dbo.PayrollSettings WHERE SettingKey = 'UNEMPLOYMENT_INSURANCE_RATE'),
@@ -71,7 +45,6 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Serialise concurrent runs for the same period (UPDLOCK + HOLDLOCK = key-range lock)
         SELECT @PeriodId = PeriodId, @Status = Status
         FROM dbo.PayrollPeriods WITH (UPDLOCK, HOLDLOCK)
         WHERE PeriodYear = @PeriodYear AND PeriodMonth = @PeriodMonth;
@@ -95,7 +68,7 @@ BEGIN
             SELECT a.EmployeeId,
                    SUM(CASE a.Status WHEN 'PRESENT' THEN 1.0 WHEN 'LATE' THEN 1.0 WHEN 'HALF_DAY' THEN 0.5 ELSE 0 END) AS Days
             FROM dbo.Attendance AS a
-            WHERE a.WorkDate >= @MonthStart AND a.WorkDate <= @MonthEnd       -- sargable range
+            WHERE a.WorkDate >= @MonthStart AND a.WorkDate <= @MonthEnd
             GROUP BY a.EmployeeId
         ), PaidLeave AS (
             SELECT lr.EmployeeId, COUNT(*) AS Days
@@ -152,8 +125,6 @@ BEGIN
                t.GrossSalary - t.SocialInsurance - t.HealthInsurance - t.UnemploymentInsurance - pit.Tax
         FROM Taxable AS t
         CROSS APPLY (
-            -- tax of each bracket the income reaches; derived table first because an aggregate
-            -- cannot mix an outer reference with inner columns (error 8124)
             SELECT ISNULL(ROUND(SUM(b.Amount), 0), 0) AS Tax
             FROM (SELECT (CASE WHEN tb.UpperBound IS NULL OR t.TaxableIncome < tb.UpperBound
                                THEN t.TaxableIncome ELSE tb.UpperBound END - tb.LowerBound) * tb.Rate AS Amount
@@ -187,12 +158,6 @@ BEGIN
 END;
 GO
 
-/* -----------------------------------------------------------------------------
-   sp_GetAttendanceReport – attendance per employee over a date range
-   (working days only), optionally for one department.
-     ExpectedDays = working days while employed in the range
-     AbsentDays   = expected − days with attendance − approved leave days
-   ----------------------------------------------------------------------------- */
 CREATE OR ALTER PROCEDURE dbo.sp_GetAttendanceReport
     @FromDate     DATE,
     @ToDate       DATE,
@@ -220,7 +185,6 @@ BEGIN
           AND e.HireDate <= @ToDate
           AND (e.TerminationDate IS NULL OR e.TerminationDate >= @FromDate)
     ), Expected AS (
-        -- employed for the whole range (the vast majority): no per-employee lookup needed
         SELECT e.EmployeeId,
                CASE WHEN e.HireDate <= @FromDate AND (e.TerminationDate IS NULL OR e.TerminationDate >= @ToDate)
                     THEN @TotalWorkingDays
@@ -239,7 +203,7 @@ BEGIN
                SUM(a.WorkHours) AS WorkHours
         FROM dbo.Attendance AS a
         JOIN @WorkingDays AS w ON w.WorkDate = a.WorkDate
-        WHERE a.WorkDate >= @FromDate AND a.WorkDate <= @ToDate             -- sargable: seek on IX_Attendance_WorkDate
+        WHERE a.WorkDate >= @FromDate AND a.WorkDate <= @ToDate
         GROUP BY a.EmployeeId
     ), Lv AS (
         SELECT lr.EmployeeId,
@@ -271,14 +235,10 @@ BEGIN
     LEFT JOIN Att      AS a ON a.EmployeeId = e.EmployeeId
     LEFT JOIN Lv       AS l ON l.EmployeeId = e.EmployeeId
     ORDER BY e.DepartmentName, e.EmployeeCode
-    OPTION (RECOMPILE);   -- optional @DepartmentId: compile a plan for the actual value (no parameter sniffing)
+    OPTION (RECOMPILE);
 END;
 GO
 
-/* -----------------------------------------------------------------------------
-   sp_GetDepartmentStatistics – headcount & HR KPIs per department as of a date
-   (current status columns reflect today's status).
-   ----------------------------------------------------------------------------- */
 CREATE OR ALTER PROCEDURE dbo.sp_GetDepartmentStatistics
     @AsOfDate DATE = NULL
 AS
@@ -322,7 +282,6 @@ BEGIN
            CAST(ISNULL(h.AvgAge, 0) AS DECIMAL(4,1))             AS AvgAge,
            ISNULL(mv.NewHiresYtd, 0)     AS NewHiresYtd,
            ISNULL(mv.TerminationsYtd, 0) AS TerminationsYtd,
-           -- turnover ≈ leavers / (current headcount + leavers) for the year to date
            CAST(CASE WHEN ISNULL(h.Headcount, 0) + ISNULL(mv.TerminationsYtd, 0) = 0 THEN 0
                      ELSE 100.0 * ISNULL(mv.TerminationsYtd, 0) / (ISNULL(h.Headcount, 0) + ISNULL(mv.TerminationsYtd, 0))
                 END AS DECIMAL(5,1)) AS TurnoverRate
@@ -335,14 +294,6 @@ BEGIN
 END;
 GO
 
-/* -----------------------------------------------------------------------------
-   sp_InitLeaveBalances – create/refresh balances of every leave type that
-   requires one (annual leave) for a year. Idempotent: existing rows keep
-   UsedDays; EntitledDays is refreshed when it changed and stays >= UsedDays.
-   BR-23: 12 days + 1 day per 5 full years of service at 1 January;
-          joiners during the year: 12 × months worked / 12 (hire month counts
-          if hired on or before the 15th), fraction >= 0.5 rounds up.
-   ----------------------------------------------------------------------------- */
 CREATE OR ALTER PROCEDURE dbo.sp_InitLeaveBalances
     @Year SMALLINT
 AS
@@ -401,12 +352,6 @@ BEGIN
 END;
 GO
 
-/* -----------------------------------------------------------------------------
-   sp_RunDataValidation – data quality checks on live data. Constraints and
-   triggers prevent most of these issues, but data loaded with constraints
-   disabled, legacy imports or direct SQL fixes can still break them.
-   Result: one row per check with PASS/FAIL/WARN and up to 10 sample keys.
-   ----------------------------------------------------------------------------- */
 CREATE OR ALTER PROCEDURE dbo.sp_RunDataValidation
 AS
 BEGIN
@@ -415,36 +360,30 @@ BEGIN
     DECLARE @r TABLE (CheckCode VARCHAR(10) PRIMARY KEY, CheckName NVARCHAR(200), Severity VARCHAR(10),
                       ViolationCount INT, SampleKeys NVARCHAR(1000));
 
-    -- DV01: duplicate employee codes after normalisation (trim + upper case)
     WITH x AS (SELECT UPPER(LTRIM(RTRIM(EmployeeCode))) AS K FROM dbo.Employees
                GROUP BY UPPER(LTRIM(RTRIM(EmployeeCode))) HAVING COUNT(*) > 1)
     INSERT INTO @r SELECT 'DV01', N'Mã nhân viên trùng lặp', 'ERROR', (SELECT COUNT(*) FROM x),
            (SELECT STRING_AGG(K, ', ') FROM (SELECT TOP 10 K FROM x ORDER BY K) s);
 
-    -- DV02: duplicate e-mails (case/whitespace-insensitive)
     WITH x AS (SELECT LOWER(LTRIM(RTRIM(Email))) AS K FROM dbo.Employees
                GROUP BY LOWER(LTRIM(RTRIM(Email))) HAVING COUNT(*) > 1)
     INSERT INTO @r SELECT 'DV02', N'Email nhân viên trùng lặp', 'ERROR', (SELECT COUNT(*) FROM x),
            (SELECT STRING_AGG(K, ', ') FROM (SELECT TOP 10 K FROM x ORDER BY K) s);
 
-    -- DV03: duplicate national ID numbers
     WITH x AS (SELECT NationalId AS K FROM dbo.Employees WHERE NationalId IS NOT NULL
                GROUP BY NationalId HAVING COUNT(*) > 1)
     INSERT INTO @r SELECT 'DV03', N'Số CCCD trùng lặp', 'ERROR', (SELECT COUNT(*) FROM x),
            (SELECT STRING_AGG(K, ', ') FROM (SELECT TOP 10 K FROM x ORDER BY K) s);
 
-    -- DV04: negative salary or allowance
     WITH x AS (SELECT EmployeeCode AS K FROM dbo.Employees WHERE BaseSalary < 0 OR Allowance < 0)
     INSERT INTO @r SELECT 'DV04', N'Lương cơ bản / phụ cấp âm', 'ERROR', (SELECT COUNT(*) FROM x),
            (SELECT STRING_AGG(K, ', ') FROM (SELECT TOP 10 K FROM x ORDER BY K) s);
 
-    -- DV05: salary outside the position salary band (warning – may be an approved exception)
     WITH x AS (SELECT e.EmployeeCode AS K FROM dbo.Employees AS e JOIN dbo.Positions AS p ON p.PositionId = e.PositionId
                WHERE e.Status <> 'TERMINATED' AND (e.BaseSalary < p.MinSalary OR e.BaseSalary > p.MaxSalary))
     INSERT INTO @r SELECT 'DV05', N'Lương nằm ngoài khung lương chức danh', 'WARNING', (SELECT COUNT(*) FROM x),
            (SELECT STRING_AGG(K, ', ') FROM (SELECT TOP 10 K FROM x ORDER BY K) s);
 
-    -- DV06: overlapping active leave requests of the same employee
     WITH x AS (SELECT CONCAT(e.EmployeeCode, ':#', a.LeaveRequestId, '/#', b.LeaveRequestId) AS K
                FROM dbo.LeaveRequests AS a
                JOIN dbo.LeaveRequests AS b ON b.EmployeeId = a.EmployeeId AND b.LeaveRequestId > a.LeaveRequestId
@@ -454,7 +393,6 @@ BEGIN
     INSERT INTO @r SELECT 'DV06', N'Đơn nghỉ phép chồng lấn ngày', 'ERROR', (SELECT COUNT(*) FROM x),
            (SELECT STRING_AGG(K, ', ') FROM (SELECT TOP 10 K FROM x ORDER BY K) s);
 
-    -- DV07: TotalDays differs from the actual number of working days (e.g. holiday added later)
     WITH x AS (SELECT CONCAT('#', lr.LeaveRequestId) AS K
                FROM dbo.LeaveRequests AS lr
                CROSS APPLY (SELECT COUNT(*) AS Days FROM dbo.fn_WorkingDays(lr.StartDate, lr.EndDate)) AS wd
@@ -462,7 +400,6 @@ BEGIN
     INSERT INTO @r SELECT 'DV07', N'Số ngày nghỉ không khớp số ngày làm việc thực tế', 'WARNING', (SELECT COUNT(*) FROM x),
            (SELECT STRING_AGG(K, ', ') FROM (SELECT TOP 10 K FROM x ORDER BY K) s);
 
-    -- DV08: leave balance out of sync with approved requests
     WITH x AS (SELECT CONCAT(e.EmployeeCode, '/', lb.BalanceYear) AS K
                FROM dbo.LeaveBalances AS lb
                JOIN dbo.Employees AS e ON e.EmployeeId = lb.EmployeeId
@@ -474,14 +411,12 @@ BEGIN
     INSERT INTO @r SELECT 'DV08', N'Số ngày phép đã dùng lệch với đơn đã duyệt', 'ERROR', (SELECT COUNT(*) FROM x),
            (SELECT STRING_AGG(K, ', ') FROM (SELECT TOP 10 K FROM x ORDER BY K) s);
 
-    -- DV09: attendance outside the employment period
     WITH x AS (SELECT CONCAT(e.EmployeeCode, '@', CONVERT(CHAR(10), a.WorkDate, 23)) AS K
                FROM dbo.Attendance AS a JOIN dbo.Employees AS e ON e.EmployeeId = a.EmployeeId
                WHERE a.WorkDate < e.HireDate OR (e.TerminationDate IS NOT NULL AND a.WorkDate > e.TerminationDate))
     INSERT INTO @r SELECT 'DV09', N'Chấm công ngoài thời gian làm việc (trước ngày vào / sau ngày nghỉ)', 'ERROR',
            (SELECT COUNT(*) FROM x), (SELECT STRING_AGG(K, ', ') FROM (SELECT TOP 10 K FROM x ORDER BY K) s);
 
-    -- DV10: attendance on a day covered by approved leave
     WITH x AS (SELECT CONCAT(e.EmployeeCode, '@', CONVERT(CHAR(10), a.WorkDate, 23)) AS K
                FROM dbo.Attendance AS a
                JOIN dbo.Employees AS e ON e.EmployeeId = a.EmployeeId
@@ -492,20 +427,17 @@ BEGIN
     INSERT INTO @r SELECT 'DV10', N'Có chấm công trong ngày đã được duyệt nghỉ', 'WARNING', (SELECT COUNT(*) FROM x),
            (SELECT STRING_AGG(K, ', ') FROM (SELECT TOP 10 K FROM x ORDER BY K) s);
 
-    -- DV11: missing check-out on past days
     WITH x AS (SELECT CONCAT(e.EmployeeCode, '@', CONVERT(CHAR(10), a.WorkDate, 23)) AS K
                FROM dbo.Attendance AS a JOIN dbo.Employees AS e ON e.EmployeeId = a.EmployeeId
                WHERE a.WorkDate < @Today AND a.CheckIn IS NOT NULL AND a.CheckOut IS NULL)
     INSERT INTO @r SELECT 'DV11', N'Thiếu giờ check-out (ngày đã qua)', 'WARNING', (SELECT COUNT(*) FROM x),
            (SELECT STRING_AGG(K, ', ') FROM (SELECT TOP 10 K FROM x ORDER BY K) s);
 
-    -- DV12: terminated employees with an active login
     WITH x AS (SELECT e.EmployeeCode AS K FROM dbo.Employees AS e JOIN dbo.Users AS u ON u.EmployeeId = e.EmployeeId
                WHERE e.Status = 'TERMINATED' AND u.IsActive = 1)
     INSERT INTO @r SELECT 'DV12', N'Nhân viên đã nghỉ việc nhưng tài khoản còn hoạt động', 'ERROR', (SELECT COUNT(*) FROM x),
            (SELECT STRING_AGG(K, ', ') FROM (SELECT TOP 10 K FROM x ORDER BY K) s);
 
-    -- DV13: management cycles (A manages B manages … A) – recursive CTE with depth guard
     WITH Chain AS (
         SELECT e.EmployeeId AS StartId, e.ManagerId AS CurrentId, 1 AS Depth
         FROM dbo.Employees AS e WHERE e.ManagerId IS NOT NULL
@@ -518,13 +450,11 @@ BEGIN
     INSERT INTO @r SELECT 'DV13', N'Vòng lặp trong quan hệ quản lý', 'ERROR', (SELECT COUNT(*) FROM x),
            (SELECT STRING_AGG(K, ', ') FROM (SELECT TOP 10 K FROM x ORDER BY K) s);
 
-    -- DV14: active employees reporting to a terminated manager
     WITH x AS (SELECT e.EmployeeCode AS K FROM dbo.Employees AS e JOIN dbo.Employees AS m ON m.EmployeeId = e.ManagerId
                WHERE e.Status <> 'TERMINATED' AND m.Status = 'TERMINATED')
     INSERT INTO @r SELECT 'DV14', N'Nhân viên có quản lý trực tiếp đã nghỉ việc', 'WARNING', (SELECT COUNT(*) FROM x),
            (SELECT STRING_AGG(K, ', ') FROM (SELECT TOP 10 K FROM x ORDER BY K) s);
 
-    -- DV15: payslip arithmetic (net = gross − insurance − tax, nothing negative)
     WITH x AS (SELECT CONCAT(pp.PeriodYear, '-', FORMAT(pp.PeriodMonth, '00'), '/', e.EmployeeCode) AS K
                FROM dbo.Payroll AS p
                JOIN dbo.PayrollPeriods AS pp ON pp.PeriodId = p.PeriodId
@@ -534,7 +464,6 @@ BEGIN
     INSERT INTO @r SELECT 'DV15', N'Bảng lương sai công thức hoặc có số âm', 'ERROR', (SELECT COUNT(*) FROM x),
            (SELECT STRING_AGG(K, ', ') FROM (SELECT TOP 10 K FROM x ORDER BY K) s);
 
-    -- DV16: active review criteria weights must total 100
     DECLARE @Weight DECIMAL(9,2) = (SELECT ISNULL(SUM(Weight), 0) FROM dbo.ReviewCriteria WHERE IsActive = 1);
     INSERT INTO @r SELECT 'DV16', N'Tổng trọng số tiêu chí đánh giá khác 100', 'ERROR',
            CASE WHEN @Weight = 100 THEN 0 ELSE 1 END,

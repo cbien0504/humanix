@@ -1,4 +1,3 @@
-/* Positions & salary bands CRUD (UC-11) */
 $(function () {
     'use strict';
     var $form = $('#posForm');

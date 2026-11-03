@@ -2,7 +2,6 @@ package com.hrm.model;
 
 import java.math.BigDecimal;
 
-/** One employee's payroll line of a period (vw_PayrollDetails). */
 public class Payslip {
 
     private long payrollId;

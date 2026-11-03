@@ -22,10 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Role-aware dashboard data (UC-60): a personal section for anyone linked to an employee,
- * a team section for managers and a company section for HR/admins.
- */
 public class DashboardService {
 
     private static final PageRequest FIRST_PAGE = new PageRequest(1, 50, null, true);
@@ -99,7 +95,6 @@ public class DashboardService {
         m.put("attendanceToday", reportDao.attendanceOn(today));
         m.put("pendingLeaveRequests", leaveDao.countPending(null));
         m.put("recruitment", recruitmentDao.recruitmentStats());
-        // a running month calculated for preview would show a misleading dip: keep finished or approved months only
         YearMonth current = YearMonth.from(today);
         List<Map<String, Object>> payroll = reportDao.payrollTrend(7).stream()
                 .filter(p -> YearMonth.of((Integer) p.get("year"), (Integer) p.get("month")).isBefore(current)

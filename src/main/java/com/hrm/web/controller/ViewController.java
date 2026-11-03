@@ -3,7 +3,6 @@ package com.hrm.web.controller;
 import com.hrm.web.BaseController;
 import com.hrm.web.Router;
 
-/** Renders a fixed JSP "shell" whose data is loaded by AJAX (e.g. /departments, /positions). */
 public class ViewController extends BaseController {
 
     private static final long serialVersionUID = 1L;

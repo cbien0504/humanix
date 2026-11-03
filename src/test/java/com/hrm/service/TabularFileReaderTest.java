@@ -19,7 +19,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/** CSV/XLSX reading for the employee import: encodings, delimiters, header names and row numbers. */
 class TabularFileReaderTest {
 
     private static InputStream text(String content) {
@@ -44,10 +43,6 @@ class TabularFileReaderTest {
         assertThat(rows.get(0).get("base_salary")).isEqualTo("30.000.000");
     }
 
-    /**
-     * Row numbers must be the line a user sees in a text editor or Excel, even when a quoted
-     * value spans several lines or a blank line sits between records.
-     */
     @Test
     void rowNumbersAreFileLinesDespiteMultiLineValuesAndBlankLines() throws IOException {
         String csv = """
@@ -89,9 +84,9 @@ class TabularFileReaderTest {
             r.createCell(1).setCellValue(LocalDate.of(2026, 11, 20));
             r.getCell(1).setCellStyle(dateStyle);
             r.createCell(2).setCellValue(16_500_000.0);
-            r.createCell(3).setCellValue(912_345_678);          // typed as a number: the leading zero is gone
+            r.createCell(3).setCellValue(912_345_678);
             r.createCell(4).setCellValue(true);
-            sheet.createRow(2);                                // empty row is skipped
+            sheet.createRow(2);
             Row last = sheet.createRow(3);
             last.createCell(0).setCellValue("EMP0112");
             last.createCell(2).setCellFormula("15000000+500000");

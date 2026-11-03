@@ -1,4 +1,3 @@
-/* Departments CRUD (UC-10) */
 $(function () {
     'use strict';
     var $form = $('#deptForm');

@@ -1,4 +1,3 @@
-/* Payroll sheet of one period with department totals (UC-31) */
 $(function () {
     'use strict';
     var id = $('#periodPage').data('period-id');

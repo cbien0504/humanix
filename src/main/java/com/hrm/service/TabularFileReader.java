@@ -29,14 +29,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-/**
- * Reads a CSV (UTF-8, optional BOM, comma or semicolon) or Excel (.xlsx) file into rows of
- * {@code header → text}. Header names are normalised (lower case, spaces → underscores).
- * Excel dates are returned as ISO {@code yyyy-MM-dd}, numbers without grouping.
- */
 public final class TabularFileReader {
 
-    /** A data row with its 1-based line number in the file (header = 1). */
     public record DataRow(int rowNumber, Map<String, String> values) {
         public String get(String column) {
             String v = values.get(column);
@@ -97,17 +91,10 @@ public final class TabularFileReader {
         return rows;
     }
 
-    /** Positions of every line feed, to turn a record's character position into its line number. */
     private static int[] lineBreaks(String text) {
         return IntStream.range(0, text.length()).filter(i -> text.charAt(i) == '\n').toArray();
     }
 
-    /**
-     * 1-based line on which a record starts. The record counter of the parser is not a line number:
-     * a quoted value spanning lines or a skipped blank line would shift every later error report.
-     * The parser reports the position right after the previous record, so skipped blank lines are
-     * stepped over first.
-     */
     private static int lineOf(String text, int[] lineBreaks, long characterPosition) {
         int position = (int) characterPosition;
         while (position < text.length() && (text.charAt(position) == '\n' || text.charAt(position) == '\r')) {

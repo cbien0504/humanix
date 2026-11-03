@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
-/** {@code POST /logout} (POST + CSRF token, so a malicious link cannot log users out). */
 public class LogoutController extends BaseController {
 
     private static final long serialVersionUID = 1L;

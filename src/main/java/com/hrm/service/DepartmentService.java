@@ -11,7 +11,6 @@ import com.hrm.util.Validator;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/** Department management (UC-10). */
 public class DepartmentService {
 
     static final Pattern CODE = Pattern.compile("^[A-Z0-9_-]{2,20}$");
@@ -60,7 +59,7 @@ public class DepartmentService {
         if (d.getEmployeeCount() > 0) {
             throw new BusinessException("Phòng ban đang có " + d.getEmployeeCount() + " nhân viên nên không thể xóa.");
         }
-        departmentDao.delete(id);   // FK violations (job postings, former employees) are translated to friendly messages
+        departmentDao.delete(id);
         audit.record("DEPARTMENT_DELETED", "Department", id, d.getDepartmentCode());
     }
 

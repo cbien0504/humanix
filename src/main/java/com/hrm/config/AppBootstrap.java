@@ -50,14 +50,6 @@ import java.sql.DriverManager;
 import java.util.Collections;
 import java.util.EnumSet;
 
-/**
- * Application entry point (declared in web.xml). Builds the {@link AppContext} and registers
- * filters and controllers programmatically, which gives
- * <ul>
- *   <li>constructor injection into servlets/filters (no service locator in controllers),</li>
- *   <li>a deterministic filter order (annotation-based filters have no defined order).</li>
- * </ul>
- */
 public class AppBootstrap implements ServletContextListener {
 
     private static final Logger log = LoggerFactory.getLogger(AppBootstrap.class);
@@ -70,7 +62,6 @@ public class AppBootstrap implements ServletContextListener {
         sc.setAttribute(AppContext.ATTRIBUTE, app);
         sc.setAttribute("appName", config.get("app.name", "HRM System"));
         sc.setAttribute("appVersion", config.get("app.version", "dev"));
-        // cache-busting suffix for /assets/** (changes on every deployment/restart)
         sc.setAttribute("assetVersion", config.get("app.version", "dev") + "." + Long.toString(System.currentTimeMillis() / 1000, 36));
         Formats.setZone(app.clock().getZone());
         sc.getSessionCookieConfig().setHttpOnly(true);
@@ -83,8 +74,6 @@ public class AppBootstrap implements ServletContextListener {
     }
 
     private void registerFilters(ServletContext sc, AppContext app) {
-        // order matters: request id/MDC first, so every later log line carries it;
-        // authentication before CSRF (API-key calls are exempt) before authorization
         filter(sc, "requestContext", new RequestContextFilter(), "/*");
         filter(sc, "characterEncoding", new CharacterEncodingFilter(), "/*");
         filter(sc, "securityHeaders", new SecurityHeadersFilter(), "/*");
@@ -105,7 +94,6 @@ public class AppBootstrap implements ServletContextListener {
         servlet(sc, "admin", new AdminController(), "/admin/*");
         servlet(sc, "apiUsers", new UserApiController(app.userService()), "/api/users/*");
         servlet(sc, "apiAdmin", new AdminApiController(app.dataQualityService(), app.auditService()), "/api/admin/*");
-        // employee information
         servlet(sc, "employees", new EmployeeController(app.employeeService(), app.departmentService(), app.positionService()),
                 "/employees/*");
         servlet(sc, "departmentsPage", new ViewController("org/departments"), "/departments");
@@ -113,28 +101,22 @@ public class AppBootstrap implements ServletContextListener {
         servlet(sc, "apiEmployees", new EmployeeApiController(app.employeeService()), "/api/employees/*");
         servlet(sc, "apiDepartments", DepartmentApiController.departments(app.departmentService()), "/api/departments/*");
         servlet(sc, "apiPositions", DepartmentApiController.positions(app.positionService()), "/api/positions/*");
-        // attendance & leave
         servlet(sc, "attendancePages", AttendanceController.attendance(app.departmentService()), "/attendance/*");
         servlet(sc, "leavePages", AttendanceController.leave(app.leaveService()), "/leave/*");
         servlet(sc, "apiAttendance", new AttendanceApiController(app.attendanceService()), "/api/attendance/*");
         servlet(sc, "apiLeave", new LeaveApiController(app.leaveService(), app.clock()), "/api/leave-requests/*");
-        // payroll
         servlet(sc, "payroll", new PayrollController(app.payrollService(), app.departmentService()), "/payroll/*");
         servlet(sc, "apiPayroll", new PayrollApiController(app.payrollService()), "/api/payroll/*");
-        // recruitment
         servlet(sc, "recruitment", new RecruitmentController(app.recruitmentService(), app.departmentService(),
                 app.positionService()), "/recruitment/*");
         servlet(sc, "apiJobs", new JobApiController(app.recruitmentService()), "/api/jobs/*");
         servlet(sc, "apiCandidates", new CandidateApiController(app.recruitmentService()), "/api/candidates/*");
-        // performance
         servlet(sc, "performance", new PerformanceController(app.performanceService()), "/performance/*");
         servlet(sc, "apiReviewCycles", PerformanceApiController.cycles(app.performanceService()), "/api/review-cycles/*");
         servlet(sc, "apiReviews", PerformanceApiController.reviews(app.performanceService()), "/api/reviews/*");
-        // reports & dashboard
         servlet(sc, "reports", new ReportController(app.reportService(), app.departmentService()), "/reports/*");
         servlet(sc, "apiReports", ReportApiController.reports(app.reportService()), "/api/reports/*");
         servlet(sc, "apiDashboard", ReportApiController.dashboard(app.dashboardService()), "/api/dashboard/*");
-        // data import (multipart: 5 MB per file)
         servlet(sc, "import", new ImportController(app.importService()), "/import/*")
                 .setMultipartConfig(new MultipartConfigElement(null, 5L * 1024 * 1024, 6L * 1024 * 1024, 512 * 1024));
     }
@@ -157,7 +139,6 @@ public class AppBootstrap implements ServletContextListener {
         if (app instanceof AppContext ctx) {
             ctx.close();
         }
-        // deregister JDBC drivers loaded by this web app to avoid class-loader leaks on redeploy
         ClassLoader webappLoader = Thread.currentThread().getContextClassLoader();
         for (Driver driver : Collections.list(DriverManager.getDrivers())) {
             if (driver.getClass().getClassLoader() == webappLoader) {

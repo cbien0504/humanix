@@ -24,8 +24,6 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
-      # compile, 300+ unit tests, enforcer rules, JaCoCo gate (com.hrm.service ≥ 60 % lines);
-      # integration tests skip themselves because HRM_IT_DB_URL is not set here
       - run: ./mvnw -B verify
       - name: Upload test and coverage reports
         if: always()
@@ -51,7 +49,6 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
-      # throw-away passwords generated per run and masked in the log – nothing secret lives in the repo
       - name: Start SQL Server
         run: |
           SA="Sa-$(openssl rand -hex 12)-9aA!"

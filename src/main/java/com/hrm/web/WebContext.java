@@ -28,14 +28,8 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Per-request facade over the servlet request/response with typed parameter parsing,
- * JSON I/O, view rendering and access to the authenticated user. Parsing failures raise
- * {@link ValidationException}, so handlers never deal with raw {@code NumberFormatException}s.
- */
 public final class WebContext {
 
-    /** Session attribute holding the {@link AuthUser}. */
     public static final String SESSION_USER = "authUser";
     private static final String VIEW_PREFIX = "/WEB-INF/views/";
 
@@ -57,13 +51,10 @@ public final class WebContext {
         return response;
     }
 
-    // ------------------------------------------------------------ input
-
     public String pathVar(String name) {
         return pathVariables.get(name);
     }
 
-    /** Numeric path variable; a non-numeric id is reported as "not found". */
     public long pathId(String name) {
         try {
             return Long.parseLong(pathVariables.get(name));
@@ -72,7 +63,6 @@ public final class WebContext {
         }
     }
 
-    /** Trimmed request parameter, {@code null} when absent or blank. */
     public String param(String name) {
         String v = request.getParameter(name);
         if (v == null) {
@@ -109,7 +99,6 @@ public final class WebContext {
         }
     }
 
-    /** ISO date parameter ({@code yyyy-MM-dd}, the format of HTML date inputs). */
     public LocalDate dateParam(String name) {
         String v = param(name);
         try {
@@ -119,7 +108,6 @@ public final class WebContext {
         }
     }
 
-    /** Enum parameter by constant name; an unknown value is a 400 listing the allowed ones (not a 500). */
     public <E extends Enum<E>> E enumParam(String name, Class<E> type) {
         String v = param(name);
         if (v == null) {
@@ -133,7 +121,6 @@ public final class WebContext {
         }
     }
 
-    /** Paging/sorting parameters {@code page, size, sort, dir}. */
     public PageRequest pageRequest(int defaultSize) {
         return PageRequest.of(intParam("page"), intParam("size"), param("sort"), param("dir"), defaultSize);
     }
@@ -163,7 +150,6 @@ public final class WebContext {
         }
     }
 
-    /** "workDate" for an object body, "[3].workDate" for an array – tells API clients which value to fix. */
     private static String jsonPath(JsonMappingException e) {
         StringBuilder sb = new StringBuilder();
         for (JsonMappingException.Reference ref : e.getPath()) {
@@ -198,8 +184,6 @@ public final class WebContext {
         return "";
     }
 
-    // ------------------------------------------------------------ output
-
     public void json(Object body) throws IOException {
         json(HttpServletResponse.SC_OK, body);
     }
@@ -214,23 +198,19 @@ public final class WebContext {
         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
 
-    /** Sets request attributes for the view (chainable). */
     public WebContext attr(String name, Object value) {
         request.setAttribute(name, value);
         return this;
     }
 
-    /** Forwards to {@code /WEB-INF/views/<view>.jsp}. */
     public void render(String view) throws ServletException, IOException {
         request.getRequestDispatcher(VIEW_PREFIX + view + ".jsp").forward(request, response);
     }
 
-    /** Redirects to an application-relative path (context path is prepended). */
     public void redirect(String path) throws IOException {
         response.sendRedirect(request.getContextPath() + path);
     }
 
-    /** Streams a file download; the filename is RFC 5987 encoded so Vietnamese names survive. */
     public OutputStream download(String filename, String contentType) throws IOException {
         response.setContentType(contentType);
         String encoded = URLEncoder.encode(filename, StandardCharsets.UTF_8).replace("+", "%20");
@@ -238,7 +218,6 @@ public final class WebContext {
         return response.getOutputStream();
     }
 
-    /** True for AJAX calls and REST API calls – errors are then answered as JSON. */
     public boolean wantsJson() {
         return wantsJson(request);
     }
@@ -251,9 +230,6 @@ public final class WebContext {
                 || (accept != null && accept.contains("application/json"));
     }
 
-    // ------------------------------------------------------------ security
-
-    /** Current user or {@code null}. */
     public AuthUser user() {
         Object fromRequest = request.getAttribute(SESSION_USER);
         if (fromRequest instanceof AuthUser u) {

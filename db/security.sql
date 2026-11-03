@@ -1,11 +1,3 @@
-/* =============================================================================
-   HRM System – least-privilege login for the web application (NFR-06)
-   Requires the sqlcmd variable APP_DB_PASSWORD (passed by init-db.sh):
-     sqlcmd -d HRM -v APP_DB_PASSWORD="..." -i db/security.sql
-   The application never connects as sa: hrm_app can read/write data and
-   execute procedures, but cannot alter the schema, disable constraints or
-   triggers, or touch other databases.
-   ============================================================================= */
 SET NOCOUNT ON;
 GO
 

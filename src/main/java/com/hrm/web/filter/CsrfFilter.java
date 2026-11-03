@@ -14,13 +14,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Set;
 
-/**
- * CSRF protection with the synchronizer-token pattern (NFR-04).
- * Every state-changing request (POST/PUT/DELETE/PATCH) of a browser session must echo the
- * session token in the {@code X-CSRF-Token} header (AJAX) or the {@code _csrf} form field.
- * Calls authenticated by API key carry no cookies and are therefore exempt.
- * The login page gets a session (and token) before authentication to prevent login CSRF.
- */
 public class CsrfFilter extends HttpFilter {
 
     private static final Logger log = LoggerFactory.getLogger(CsrfFilter.class);

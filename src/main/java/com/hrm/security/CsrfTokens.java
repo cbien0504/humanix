@@ -7,7 +7,6 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
 
-/** Synchronizer-token pattern: one random token per session, compared in constant time. */
 public final class CsrfTokens {
 
     public static final String SESSION_ATTRIBUTE = "csrfToken";
@@ -26,7 +25,6 @@ public final class CsrfTokens {
         return token;
     }
 
-    /** New token, e.g. right after login (prevents token fixation). */
     public static String rotate(HttpSession session) {
         byte[] bytes = new byte[32];
         RANDOM.nextBytes(bytes);

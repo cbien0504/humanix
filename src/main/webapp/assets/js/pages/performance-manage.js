@@ -1,4 +1,3 @@
-/* Review cycles (HR) and reviews to score (managers) – UC-50, UC-52, UC-53 */
 $(function () {
     'use strict';
     var canEdit = $('#perfPage').data('can-edit') === true;

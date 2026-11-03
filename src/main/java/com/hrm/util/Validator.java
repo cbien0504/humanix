@@ -9,17 +9,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-/**
- * Fluent server-side validator collecting one message per field (the first failure wins),
- * then throwing a single {@link ValidationException}. The same rules exist client-side for
- * user experience, but only this check is authoritative.
- * <pre>{@code
- * new Validator()
- *     .required("fullName", form.fullName(), "Vui lòng nhập họ tên")
- *     .email("email", form.email())
- *     .throwIfInvalid();
- * }</pre>
- */
 public final class Validator {
 
     public static final Pattern EMAIL = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
@@ -66,7 +55,6 @@ public final class Validator {
         return check(value == null || (value.longValue() >= min && value.longValue() <= max), field, message);
     }
 
-    /** {@code end} must not be before {@code start} (both optional). */
     public Validator notBefore(String field, LocalDate end, LocalDate start, String message) {
         return check(end == null || start == null || !end.isBefore(start), field, message);
     }
@@ -89,7 +77,6 @@ public final class Validator {
         }
     }
 
-    /** Trims and converts blank strings to {@code null}. */
     public static String clean(String value) {
         if (value == null) {
             return null;

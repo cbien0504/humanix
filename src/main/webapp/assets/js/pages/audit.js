@@ -1,4 +1,3 @@
-/* Audit trail (UC-05) */
 $(function () {
     'use strict';
     var table = new HRM.DataTable($('#auditTable'), {

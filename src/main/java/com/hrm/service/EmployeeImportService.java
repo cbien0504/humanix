@@ -34,18 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Employee data migration from CSV/Excel (UC-17, UC-72). Every row is checked and every problem
- * is reported with its row number, column and value:
- * <ol>
- *   <li>format: required columns, dates (yyyy-MM-dd or dd/MM/yyyy), numbers, gender, status;</li>
- *   <li>references: department / position codes, manager code (in the database or an earlier row);</li>
- *   <li>duplicates inside the file and against the database (code, email, national ID);</li>
- *   <li>all business rules of {@link EmployeeService} (salary band, age, formats…).</li>
- * </ol>
- * Valid rows are then created through {@link EmployeeService#create}, so imported data obeys
- * exactly the same rules as data typed in the UI.
- */
 public class EmployeeImportService {
 
     public static final List<String> COLUMNS = List.of("employee_code", "full_name", "gender", "date_of_birth", "email",
@@ -63,7 +51,6 @@ public class EmployeeImportService {
             Map.entry("status", "status"), Map.entry("baseSalary", "base_salary"), Map.entry("allowance", "allowance"),
             Map.entry("dependents", "dependents"), Map.entry("bankAccount", "bank_account"), Map.entry("bankName", "bank_name"));
 
-    /** STRICT: the default SMART resolver would silently turn 31/02 into 28/02. */
     private static final DateTimeFormatter DMY = DateTimeFormatter.ofPattern("d/M/uuuu").withResolverStyle(ResolverStyle.STRICT);
 
     private final EmployeeService employeeService;
@@ -83,7 +70,6 @@ public class EmployeeImportService {
         this.audit = audit;
     }
 
-    /** A validated row waiting to be inserted. */
     private record Pending(int row, EmployeeForm form, String managerCodeInFile) {
     }
 
@@ -132,14 +118,11 @@ public class EmployeeImportService {
         return result;
     }
 
-    /** CSV template with the expected header and one example row. */
     public static String template() {
         return String.join(",", COLUMNS) + "\n"
                 + "EMP0101,Nguyễn Văn Mẫu,M,1995-05-20,mau.nv@example.com,0912345678,001095012345,8012345678,"
                 + "\"12 Láng Hạ, Hà Nội\",IT,DEV,EMP0013,2026-11-15,PROBATION,15000000,1000000,0,Vietcombank,0011000999999\n";
     }
-
-    // ------------------------------------------------------------------ row checks
 
     private Pending checkRow(DataRow row, Map<String, Department> departments, Map<String, Position> positions,
                              Set<String> codesSoFar, Set<String> emails, Set<String> nationalIds, List<ImportRowError> errors) {
@@ -207,7 +190,7 @@ public class EmployeeImportService {
             if (managerCode.equals(code)) {
                 errors.add(new ImportRowError(n, "manager_code", managerCode, "Nhân viên không thể tự quản lý chính mình."));
             } else if (codesSoFar.contains(managerCode)) {
-                managerInFile = managerCode;                       // created by an earlier row of this file
+                managerInFile = managerCode;
             } else {
                 var manager = employeeDao.findByCode(managerCode);
                 if (manager.isEmpty()) {
@@ -239,8 +222,6 @@ public class EmployeeImportService {
         }
         return new Pending(n, form, managerInFile);
     }
-
-    // ------------------------------------------------------------------ inserts
 
     private int insertEach(List<Pending> rows, List<ImportRowError> errors) {
         int count = 0;
@@ -298,8 +279,6 @@ public class EmployeeImportService {
         return new ImportRowError(p == null ? 0 : p.row(), column, "", message);
     }
 
-    // ------------------------------------------------------------------ parsers
-
     static LocalDate parseDate(DataRow row, String column, List<ImportRowError> errors) {
         String v = row.get(column);
         if (v == null) {
@@ -326,12 +305,6 @@ public class EmployeeImportService {
         }
     }
 
-    /**
-     * Accepts the formats found in real exports: {@code 12000000}, {@code 12.000.000}, {@code 12,000,000},
-     * {@code 12.000.000 ₫}, {@code 1,500,000.50}, {@code 1.500.000,5}. A separator followed by exactly three
-     * digits groups thousands; otherwise it is the decimal point. Anything else is rejected rather than
-     * guessed – stripping every separator would turn {@code 1,500,000.50} into 150,000,050.
-     */
     static BigDecimal toAmount(String raw) {
         String s = raw.replaceAll("(?i)vnd|vnđ|[₫đ\\s\\u00A0]", "");
         String sign = s.startsWith("-") ? "-" : "";
@@ -406,7 +379,6 @@ public class EmployeeImportService {
         return s == null ? "" : s;
     }
 
-    /** A phone (9 digits) or CCCD (11 digits) typed as a number in Excel loses its leading zero. */
     static boolean lostLeadingZero(String column, String value) {
         return ("phone".equals(column) && value.matches("[1-9]\\d{8}"))
                 || ("national_id".equals(column) && value.matches("[1-9]\\d{10}"));

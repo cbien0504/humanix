@@ -5,10 +5,9 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/** BCrypt hashing (passwords are never stored in clear) and CSRF token comparison. */
 class PasswordAndTokenTest {
 
-    private final BCryptPasswordHasher hasher = new BCryptPasswordHasher(4);     // minimum cost keeps the test fast
+    private final BCryptPasswordHasher hasher = new BCryptPasswordHasher(4);
 
     @Test
     void hashesAreSaltedAndVerifiable() {

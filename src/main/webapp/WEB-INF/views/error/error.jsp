@@ -1,8 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" isErrorPage="true" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="t" tagdir="/WEB-INF/tags" %>
-<%-- Handles both errors forwarded by ErrorHandler (errorStatus/errorMessage) and
-     container error pages (jakarta.servlet.error.*). Never shows stack traces. --%>
 <c:set var="status" value="${not empty errorStatus ? errorStatus : requestScope['jakarta.servlet.error.status_code']}"/>
 <c:if test="${empty status}"><c:set var="status" value="500"/></c:if>
 <c:choose>

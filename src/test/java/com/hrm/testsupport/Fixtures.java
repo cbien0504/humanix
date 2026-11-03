@@ -21,10 +21,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Shared test data. "Today" is fixed to Monday 2026-11-02 (Asia/Ho_Chi_Minh) so date rules are
- * deterministic; payroll parameters are the 2026 values seeded in db/seed.sql.
- */
 public final class Fixtures {
 
     public static final ZoneId ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
@@ -37,7 +33,6 @@ public final class Fixtures {
         return Clock.fixed(time.atZone(ZONE).toInstant(), ZONE);
     }
 
-    /** 2026-11-02 09:00 local time. */
     public static Clock clock() {
         return clockAt(TODAY.atTime(9, 0));
     }
@@ -45,8 +40,6 @@ public final class Fixtures {
     public static BigDecimal vnd(long amount) {
         return BigDecimal.valueOf(amount);
     }
-
-    // ------------------------------------------------------------------ users
 
     public static AuthUser admin() {
         return new AuthUser(1, "admin", null, "Quản trị hệ thống", EnumSet.of(Role.ADMIN));
@@ -64,12 +57,9 @@ public final class Fixtures {
         return new AuthUser(100 + employeeId, "emp" + employeeId, employeeId, "Nhân viên", EnumSet.of(Role.EMPLOYEE));
     }
 
-    /** Technical account without an employee record (e.g. the API client). */
     public static AuthUser technical() {
         return new AuthUser(0, AuthUser.API_CLIENT, null, "Hệ thống tích hợp", EnumSet.of(Role.HR));
     }
-
-    // ------------------------------------------------------------------ organisation
 
     public static Department department(long id, String code, boolean active) {
         Department d = new Department();
@@ -115,8 +105,6 @@ public final class Fixtures {
         return new EmployeeFormBuilder();
     }
 
-    // ------------------------------------------------------------------ payroll
-
     public static PayrollSettings payrollSettings() {
         return payrollSettings(Map.of());
     }
@@ -147,7 +135,6 @@ public final class Fixtures {
         return new TaxBracket(no, vnd(lower), upper == null ? null : vnd(upper), new BigDecimal(rate));
     }
 
-    /** Valid employee form (IT department #4, developer #6 with band 12–28 M); tweak one field per test. */
     public static final class EmployeeFormBuilder {
         private String employeeCode = "EMP0100";
         private String fullName = "Nguyễn Văn Kiểm";

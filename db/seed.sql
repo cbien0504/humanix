@@ -1,19 +1,8 @@
-/* =============================================================================
-   HRM System – sample data
-   Run after schema, functions, views, procedures and triggers (see db/init-db.sh).
-   * 6 departments, 13 positions, 36 employees, 33 user accounts, 3 payroll months
-   * Attendance is generated for every working day from 2026-08-01 to yesterday
-     with a deterministic pseudo-random distribution (same input → same data).
-   * All demo accounts use the password  Demo@123  (BCrypt cost 10).
-   ============================================================================= */
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 EXEC sys.sp_set_session_context @key = N'app_user', @value = 'seed';
 GO
 
-/* -----------------------------------------------------------------------------
-   1. Roles, departments, positions
-   ----------------------------------------------------------------------------- */
 INSERT INTO dbo.Roles (RoleCode, RoleName, Description) VALUES
  ('ADMIN',    N'Quản trị hệ thống', N'Toàn quyền: tài khoản, cấu hình, nhật ký, kiểm tra dữ liệu'),
  ('HR',       N'Nhân sự',           N'Quản lý hồ sơ, chấm công, nghỉ phép, lương, tuyển dụng, đánh giá'),
@@ -44,9 +33,6 @@ INSERT INTO dbo.Positions (PositionCode, PositionName, JobLevel, MinSalary, MaxS
  ('INTERN',     N'Thực tập sinh',             1,  3000000,   6000000);
 GO
 
-/* -----------------------------------------------------------------------------
-   2. Employees (managers resolved by code after insert)
-   ----------------------------------------------------------------------------- */
 DECLARE @e TABLE (
     Code VARCHAR(20), FullName NVARCHAR(150), Gender CHAR(1), Dob DATE, Email VARCHAR(150), Phone VARCHAR(20),
     Address NVARCHAR(300), NationalId VARCHAR(12), TaxCode VARCHAR(14), BankAccount VARCHAR(30), BankName NVARCHAR(100),
@@ -113,11 +99,6 @@ JOIN (VALUES ('BOD','EMP0001'),('HR','EMP0003'),('FIN','EMP0007'),('IT','EMP0011
 JOIN dbo.Employees AS e ON e.EmployeeCode = m.Code;
 GO
 
-/* -----------------------------------------------------------------------------
-   3. User accounts – password for all: Demo@123
-      admin/hr/manager/employee are the documented demo logins; every other
-      employee can sign in with the lower-case employee code (e.g. emp0013).
-   ----------------------------------------------------------------------------- */
 DECLARE @hash CHAR(60) = '$2a$10$bHo/3H0v.DBCJf.5.8FcxukevHCCH3nDUjK1MAQAVm5GkySg1RB8.';
 
 INSERT INTO dbo.Users (Username, PasswordHash, EmployeeId, IsActive)
@@ -127,7 +108,7 @@ SELECT CASE e.EmployeeCode WHEN 'EMP0012' THEN 'admin' WHEN 'EMP0003' THEN 'hr'
        @hash, e.EmployeeId,
        CASE WHEN e.Status = 'TERMINATED' THEN 0 ELSE 1 END
 FROM dbo.Employees AS e
-WHERE e.EmployeeCode NOT IN ('EMP0006', 'EMP0022', 'EMP0029');   -- interns / long leave: no account yet
+WHERE e.EmployeeCode NOT IN ('EMP0006', 'EMP0022', 'EMP0029');
 
 INSERT INTO dbo.UserRoles (UserId, RoleId)
 SELECT u.UserId, r.RoleId
@@ -140,10 +121,6 @@ JOIN dbo.Roles AS r ON
     OR (r.RoleCode = 'MANAGER' AND e.EmployeeCode IN ('EMP0001', 'EMP0003', 'EMP0007', 'EMP0011', 'EMP0013', 'EMP0023', 'EMP0030'));
 GO
 
-/* -----------------------------------------------------------------------------
-   4. Calendar, leave types, payroll parameters
-   ----------------------------------------------------------------------------- */
--- Public holidays falling on weekdays (reference list – HR maintains it yearly)
 INSERT INTO dbo.Holidays (HolidayDate, HolidayName) VALUES
  ('2025-01-01', N'Tết Dương lịch'),
  ('2025-01-27', N'Tết Nguyên đán'), ('2025-01-28', N'Tết Nguyên đán'), ('2025-01-29', N'Tết Nguyên đán'),
@@ -166,7 +143,6 @@ INSERT INTO dbo.LeaveTypes (LeaveTypeCode, LeaveTypeName, IsPaid, RequiresBalanc
  ('BEREAVEMENT', N'Nghỉ tang',                  1, 0, 3),
  ('MATERNITY',   N'Nghỉ thai sản (hưởng BHXH)', 0, 0, NULL);
 
--- Simplified Vietnamese payroll parameters (verify against current regulations before real use)
 INSERT INTO dbo.PayrollSettings (SettingKey, SettingValue, Description) VALUES
  ('SOCIAL_INSURANCE_RATE',       0.0800,   N'BHXH người lao động đóng (8%)'),
  ('HEALTH_INSURANCE_RATE',       0.0150,   N'BHYT người lao động đóng (1,5%)'),
@@ -178,7 +154,6 @@ INSERT INTO dbo.PayrollSettings (SettingKey, SettingValue, Description) VALUES
  ('DEPENDENT_DEDUCTION',         6200000,  N'Giảm trừ mỗi người phụ thuộc / tháng'),
  ('UNPAID_DAYS_NO_INSURANCE',    14,       N'Nghỉ không hưởng lương từ số ngày này trở lên trong tháng thì không đóng bảo hiểm');
 
--- Progressive personal income tax schedule for salary (monthly taxable income, VND)
 INSERT INTO dbo.TaxBrackets (BracketNo, LowerBound, UpperBound, Rate) VALUES
  (1,        0,  5000000, 0.05),
  (2,  5000000, 10000000, 0.10),
@@ -189,15 +164,9 @@ INSERT INTO dbo.TaxBrackets (BracketNo, LowerBound, UpperBound, Rate) VALUES
  (7, 80000000,     NULL, 0.35);
 GO
 
-/* -----------------------------------------------------------------------------
-   5. Annual leave balances for 2026 – rule BR-23 lives in sp_InitLeaveBalances
-   ----------------------------------------------------------------------------- */
 EXEC dbo.sp_InitLeaveBalances @Year = 2026;
 GO
 
-/* -----------------------------------------------------------------------------
-   6. Leave requests (the triggers update LeaveBalances.UsedDays automatically)
-   ----------------------------------------------------------------------------- */
 DECLARE @lr TABLE (Emp VARCHAR(20), LeaveType VARCHAR(20), StartDate DATE, EndDate DATE, Reason NVARCHAR(500),
                    Status VARCHAR(20), Approver VARCHAR(20), Comment NVARCHAR(500));
 INSERT INTO @lr VALUES
@@ -224,8 +193,6 @@ INSERT INTO @lr VALUES
 
 INSERT INTO dbo.LeaveRequests (EmployeeId, LeaveTypeId, StartDate, EndDate, TotalDays, Reason, Status,
                                ApproverId, DecidedAt, ApproverComment, CreatedAt)
--- Submitted 5 days and decided 3 days before the leave starts – unless that is still in the future
--- (the seed runs on any day): then the request was sent 1–3 days ago and decided since. Never in the future.
 SELECT e.EmployeeId, lt.LeaveTypeId, r.StartDate, r.EndDate, wd.Days, r.Reason, r.Status,
        a.EmployeeId,
        CASE WHEN r.Status IN ('APPROVED', 'REJECTED') THEN
@@ -246,12 +213,6 @@ CROSS APPLY (SELECT CASE WHEN n.Created < t.Now THEN n.Created
 WHERE wd.Days > 0;
 GO
 
-/* -----------------------------------------------------------------------------
-   7. Attendance – every working day from 2026-08-01 to yesterday.
-      Distribution per (employee, day): 10% late, 3% half day, 2% absent (no row),
-      rest on time. Days covered by approved/pending leave are skipped.
-      Schedule: 08:30–17:30, grace 5 minutes (BR-11).
-   ----------------------------------------------------------------------------- */
 DECLARE @From DATE = '2026-08-01';
 DECLARE @To   DATE = DATEADD(DAY, -1, CAST(SYSDATETIME() AS DATE));
 
@@ -268,9 +229,9 @@ WITH EmpDays AS (
 ), Shaped AS (
     SELECT EmployeeId, WorkDate, R2,
            CASE WHEN R < 10 THEN 'LATE' WHEN R < 13 THEN 'HALF_DAY' ELSE 'PRESENT' END AS Status,
-           CASE WHEN R < 10 THEN 516 + R2 % 45          -- 08:36–09:20
-                WHEN R < 13 THEN 480 + R2 % 30          -- 08:00–08:29
-                ELSE 465 + R2 % 51 END AS InMinute,      -- 07:45–08:35
+           CASE WHEN R < 10 THEN 516 + R2 % 45
+                WHEN R < 13 THEN 480 + R2 % 30
+                ELSE 465 + R2 % 51 END AS InMinute,
            R
     FROM EmpDays
     WHERE R < 98
@@ -278,15 +239,14 @@ WITH EmpDays AS (
 INSERT INTO dbo.Attendance (EmployeeId, WorkDate, CheckIn, CheckOut, Status, LateMinutes, Source)
 SELECT EmployeeId, WorkDate,
        DATEADD(MINUTE, InMinute, CAST(WorkDate AS DATETIME2(0))),
-       DATEADD(MINUTE, CASE WHEN Status = 'HALF_DAY' THEN 690 + R2 % 30     -- 11:30–11:59
-                            ELSE 1050 + R2 % 76 END,                       -- 17:30–18:45
+       DATEADD(MINUTE, CASE WHEN Status = 'HALF_DAY' THEN 690 + R2 % 30
+                            ELSE 1050 + R2 % 76 END,
                CAST(WorkDate AS DATETIME2(0))),
        Status,
-       CASE WHEN Status = 'LATE' THEN InMinute - 510 ELSE 0 END,   -- minutes after 08:30, only when LATE
+       CASE WHEN Status = 'LATE' THEN InMinute - 510 ELSE 0 END,
        CASE WHEN R % 7 = 0 THEN 'API' ELSE 'WEB' END
 FROM Shaped;
 
--- Today: most colleagues already checked in (demo accounts are left free to try it)
 IF DATEDIFF(DAY, '19000101', CAST(SYSDATETIME() AS DATE)) % 7 < 5
    AND NOT EXISTS (SELECT 1 FROM dbo.Holidays WHERE HolidayDate = CAST(SYSDATETIME() AS DATE))
    AND CAST(SYSDATETIME() AS TIME) >= '09:00'
@@ -309,9 +269,6 @@ BEGIN
 END;
 GO
 
-/* -----------------------------------------------------------------------------
-   8. Recruitment – postings, candidates and their pipeline history
-   ----------------------------------------------------------------------------- */
 INSERT INTO dbo.JobPostings (JobCode, Title, DepartmentId, PositionId, Openings, EmploymentType, Location,
                              SalaryMin, SalaryMax, Description, Requirements, Status, OpenDate, CloseDate, CreatedBy)
 SELECT j.Code, j.Title, d.DepartmentId, p.PositionId, j.Openings, j.EmpType, j.Location, j.SalMin, j.SalMax,
@@ -359,7 +316,6 @@ FROM (VALUES
 ) AS c(Job, FullName, Email, Phone, Source, Salary, Rating, InterviewAt, Notes, Applied)
 JOIN dbo.JobPostings AS jp ON jp.JobCode = c.Job;
 
--- Walk candidates through the pipeline; trg_Candidates_StageHistory records each step
 UPDATE dbo.Candidates SET Stage = 'SCREENING' WHERE Email IN ('quan.nm@example.net','ngoc.tb@example.net','phat.lv@example.net',
     'hang.vt@example.net','anh.hn@example.net','phuc.dc@example.net','lam.bv@example.net','thuy.mt@example.net',
     'tien.pv@example.net','phong.ad@example.net','binh.ov@example.net');
@@ -372,7 +328,6 @@ WHERE c.Email = 'phuc.dc@example.net';
 UPDATE dbo.Candidates SET Stage = 'REJECTED'  WHERE Email IN ('hang.vt@example.net','lam.bv@example.net','thuy.mt@example.net');
 UPDATE dbo.Candidates SET Stage = 'WITHDRAWN' WHERE Email IN ('anh.hn@example.net');
 
--- Spread history timestamps realistically: one step every 4 days after applying
 UPDATE h SET ChangedAt = DATEADD(HOUR, 9, CAST(DATEADD(DAY, 4 * (x.StepNo - 1), c.AppliedDate) AS DATETIME2(0))),
              ChangedBy = 'hr'
 FROM dbo.CandidateStageHistory AS h
@@ -382,9 +337,6 @@ JOIN (SELECT HistoryId, ROW_NUMBER() OVER (PARTITION BY CandidateId ORDER BY His
 UPDATE dbo.Candidates SET CreatedAt = CAST(AppliedDate AS DATETIME2(0));
 GO
 
-/* -----------------------------------------------------------------------------
-   9. Performance management – criteria, two cycles, reviews and scores
-   ----------------------------------------------------------------------------- */
 INSERT INTO dbo.ReviewCriteria (CriteriaName, Description, Weight, DisplayOrder) VALUES
  (N'Chất lượng công việc',    N'Độ chính xác, đầy đủ, ít lỗi, đáp ứng tiêu chuẩn',     30, 1),
  (N'Hiệu suất & tiến độ',     N'Khối lượng công việc, đúng hạn, đạt KPI',                25, 2),
@@ -396,8 +348,6 @@ INSERT INTO dbo.ReviewCycles (CycleName, PeriodStart, PeriodEnd, DueDate, Status
  (N'Đánh giá 6 tháng đầu năm 2026',  '2026-01-01', '2026-06-30', '2026-07-15', 'CLOSED', 'hr'),
  (N'Đánh giá 6 tháng cuối năm 2026', '2026-07-01', '2026-12-31', '2027-01-15', 'OPEN',   'hr');
 
--- Eligible: working (ACTIVE/PROBATION) employees hired before period end who have a direct manager.
--- Reviews start as PENDING_SELF (CK_PerformanceReviews_Done needs scores before COMPLETED).
 DECLARE @target TABLE (ReviewId INT PRIMARY KEY, TargetStatus VARCHAR(20));
 
 INSERT INTO dbo.PerformanceReviews (CycleId, EmployeeId, ReviewerId, Status)
@@ -409,8 +359,8 @@ WHERE e.Status IN ('ACTIVE', 'PROBATION');
 INSERT INTO @target (ReviewId, TargetStatus)
 SELECT r.ReviewId,
        CASE WHEN c.Status = 'CLOSED' THEN 'COMPLETED'
-            WHEN e.EmployeeCode IN ('EMP0016', 'EMP0012') THEN 'PENDING_SELF'             -- demo: employee/admin self-assess
-            WHEN e.EmployeeCode IN ('EMP0013', 'EMP0014', 'EMP0004') THEN 'PENDING_MANAGER' -- demo: manager/hr score
+            WHEN e.EmployeeCode IN ('EMP0016', 'EMP0012') THEN 'PENDING_SELF'
+            WHEN e.EmployeeCode IN ('EMP0013', 'EMP0014', 'EMP0004') THEN 'PENDING_MANAGER'
             ELSE CASE ABS(CHECKSUM(e.EmployeeId, c.CycleId) % 10)
                       WHEN 0 THEN 'COMPLETED' WHEN 1 THEN 'COMPLETED' WHEN 2 THEN 'COMPLETED'
                       WHEN 3 THEN 'PENDING_MANAGER' WHEN 4 THEN 'PENDING_MANAGER' WHEN 5 THEN 'PENDING_MANAGER'
@@ -420,7 +370,6 @@ FROM dbo.PerformanceReviews AS r
 JOIN dbo.ReviewCycles AS c ON c.CycleId = r.CycleId
 JOIN dbo.Employees AS e ON e.EmployeeId = r.EmployeeId;
 
--- Self scores 3–5 for reviews past self-assessment, manager scores 2–5 for completed ones
 INSERT INTO dbo.ReviewScores (ReviewId, CriteriaId, SelfScore, ManagerScore)
 SELECT t.ReviewId, rc.CriteriaId,
        3 + ABS(CHECKSUM(t.ReviewId, rc.CriteriaId) % 3),
@@ -429,7 +378,6 @@ FROM @target AS t
 CROSS JOIN dbo.ReviewCriteria AS rc
 WHERE t.TargetStatus IN ('PENDING_MANAGER', 'COMPLETED');
 
--- Weighted averages, final score and rating (same rules as PerformanceService: BR-51, BR-52)
 UPDATE r SET
     Status       = t.TargetStatus,
     SelfScore    = s.SelfAvg,
@@ -446,7 +394,6 @@ UPDATE r SET
                              WHEN 0 THEN N'Làm việc có trách nhiệm, chất lượng ổn định.'
                              WHEN 1 THEN N'Cần chủ động hơn trong việc đề xuất giải pháp.'
                              ELSE N'Đóng góp tốt cho đội nhóm, tiếp tục phát huy.' END END,
-    -- closed cycle: submitted before the due date; open cycle: during the last days
     SelfSubmittedAt    = CASE WHEN c.Status = 'CLOSED' THEN DATEADD(DAY, -12, CAST(c.DueDate AS DATETIME2(0)))
                               ELSE DATEADD(DAY, -(3 + ABS(CHECKSUM(r.ReviewId) % 7)), SYSUTCDATETIME()) END,
     ManagerSubmittedAt = CASE WHEN t.TargetStatus <> 'COMPLETED' THEN NULL
@@ -467,9 +414,6 @@ CROSS APPLY (SELECT CAST(ROUND(c.SelfWeight * s.SelfAvg + (1 - c.SelfWeight) * s
 WHERE t.TargetStatus IN ('PENDING_MANAGER', 'COMPLETED');
 GO
 
-/* -----------------------------------------------------------------------------
-   10. Payroll – Aug & Sep 2026 paid, Oct 2026 calculated and waiting for approval
-   ----------------------------------------------------------------------------- */
 EXEC dbo.sp_CalculateMonthlyPayroll @PeriodYear = 2026, @PeriodMonth = 8,  @CalculatedBy = 'hr';
 EXEC dbo.sp_CalculateMonthlyPayroll @PeriodYear = 2026, @PeriodMonth = 9,  @CalculatedBy = 'hr';
 EXEC dbo.sp_CalculateMonthlyPayroll @PeriodYear = 2026, @PeriodMonth = 10, @CalculatedBy = 'hr';

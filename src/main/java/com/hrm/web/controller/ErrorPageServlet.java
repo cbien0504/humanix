@@ -16,11 +16,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
 
-/**
- * Target of the container error pages (web.xml → {@code /error}): unmapped URLs and exceptions
- * that escaped the controllers. AJAX/API callers get the same JSON {@link ErrorResponse} as
- * from {@code ErrorHandler}; browsers get the error JSP.
- */
 public class ErrorPageServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -40,7 +35,6 @@ public class ErrorPageServlet extends HttpServlet {
             MDC.clear();
         }
 
-        // messages passed to sendError() come only from our own filters (401/403) – safe to show
         String filterMessage = (String) req.getAttribute(RequestDispatcher.ERROR_MESSAGE);
         String message = switch (code) {
             case 401, 403 -> filterMessage != null && !filterMessage.isBlank() ? filterMessage

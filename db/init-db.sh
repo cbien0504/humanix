@@ -1,21 +1,4 @@
 #!/usr/bin/env bash
-# -----------------------------------------------------------------------------
-# Initialise the HRM database with sqlcmd, in dependency order.
-#
-#   DB_HOST=localhost DB_PORT=1433 DB_ADMIN_USER=sa DB_ADMIN_PASSWORD=... \
-#   APP_DB_PASSWORD=... ./db/init-db.sh
-#
-# Environment
-#   DB_HOST / DB_PORT          SQL Server address (default localhost,1433)
-#   DB_ADMIN_USER / _PASSWORD  login allowed to create databases (e.g. sa)
-#   APP_DB_PASSWORD            password for the least-privilege login hrm_app
-#   FORCE_RESET=true           drop & recreate all objects even if the schema exists
-#
-# Notes
-#   * -I turns QUOTED_IDENTIFIER ON. It is REQUIRED: filtered indexes and indexed
-#     computed columns fail with error 1934 when objects are created without it.
-#   * The password is passed through SQLCMDPASSWORD, not on the command line.
-# -----------------------------------------------------------------------------
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

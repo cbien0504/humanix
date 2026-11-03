@@ -1,10 +1,3 @@
-/* =============================================================================
-   HRM System – large synthetic dataset for query-optimisation experiments.
-   Run in a DEDICATED database (HRM_PERF) after schema/functions/views/procedures
-   – never in the real HRM database. See db/perf/run-benchmark.sh.
-     3,000 employees · 20 departments · 1 year of attendance (~735,000 rows)
-     30,000 leave requests (≈1% pending)
-   ============================================================================= */
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 GO
@@ -35,7 +28,6 @@ INSERT INTO dbo.Departments (DepartmentCode, DepartmentName)
 SELECT CONCAT('D', FORMAT(i, '00')), CONCAT(N'Phòng ', i) FROM n;
 GO
 
--- 3,000 employees with realistic Vietnamese names built from name parts
 DECLARE @Last  TABLE (i INT IDENTITY(0,1), v NVARCHAR(20));
 DECLARE @Mid   TABLE (i INT IDENTITY(0,1), v NVARCHAR(20));
 DECLARE @First TABLE (i INT IDENTITY(0,1), v NVARCHAR(20));
@@ -65,7 +57,6 @@ JOIN @Mid   AS m ON m.i = (n.i / 12) % 8
 JOIN @First AS f ON f.i = (n.i / 96) % 20;
 GO
 
--- One year of attendance (2025-11-01 → 2026-10-31), ~98% presence
 INSERT INTO dbo.Attendance (EmployeeId, WorkDate, CheckIn, CheckOut, Status, LateMinutes, Source)
 SELECT e.EmployeeId, d.WorkDate,
        DATEADD(MINUTE, x.InMin, CAST(d.WorkDate AS DATETIME2(0))),
@@ -80,7 +71,6 @@ CROSS APPLY (SELECT r0.R AS R, CASE WHEN r0.R < 10 THEN 520 + r0.R * 3 ELSE 470 
 WHERE r0.R < 98;
 GO
 
--- 10 two-day leave requests per employee, 5 weeks apart (never overlapping)
 WITH k AS (SELECT TOP (10) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS k FROM sys.all_objects)
 INSERT INTO dbo.LeaveRequests (EmployeeId, LeaveTypeId, StartDate, EndDate, TotalDays, Reason, Status, ApproverId, DecidedAt)
 SELECT e.EmployeeId, 1 + (e.EmployeeId + k.k) % 2, s.StartDate, DATEADD(DAY, 1, s.StartDate), 2, N'Perf test',
@@ -92,7 +82,7 @@ CROSS JOIN k
 CROSS APPLY (SELECT DATEADD(DAY, (e.EmployeeId % 3), DATEADD(WEEK, k.k * 5, '2025-11-03')) AS StartDate) AS s
 CROSS APPLY (SELECT CASE WHEN (e.EmployeeId * 31 + k.k) % 100 = 0 THEN 'PENDING'
                          WHEN (e.EmployeeId + k.k) % 9 = 0 THEN 'REJECTED' ELSE 'APPROVED' END AS Status) AS st
-WHERE e.EmployeeId > 1;   -- employee 1 is the approver
+WHERE e.EmployeeId > 1;
 GO
 
 UPDATE STATISTICS dbo.Attendance WITH FULLSCAN;

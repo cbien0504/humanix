@@ -22,16 +22,10 @@ public interface LeaveDao {
 
     Optional<LeaveRequest> findById(long leaveRequestId);
 
-    /** PENDING/APPROVED requests of the employee intersecting [start, end]. */
     List<LeaveRequest> findOverlapping(long employeeId, LocalDate start, LocalDate end);
 
     long insert(long employeeId, LeaveRequestForm form, BigDecimal totalDays);
 
-    /**
-     * Moves a request from {@code expected} to {@code target} status (optimistic check).
-     *
-     * @return number of updated rows (0 = somebody else changed it first)
-     */
     int changeStatus(long leaveRequestId, LeaveStatus expected, LeaveStatus target, Long approverId, String comment);
 
     Page<LeaveRequest> search(LeaveFilter filter, PageRequest page);
@@ -40,7 +34,6 @@ public interface LeaveDao {
 
     boolean hasApprovedLeaveOn(long employeeId, LocalDate date);
 
-    /** Calls sp_InitLeaveBalances; returns inserted + updated rows. */
     int initBalances(int year);
 
     long countPending(Long teamOfManagerId);

@@ -1,4 +1,3 @@
-/* Data integrity checks (UC-06) */
 $(function () {
     'use strict';
     $('#btnRun').on('click', function () {

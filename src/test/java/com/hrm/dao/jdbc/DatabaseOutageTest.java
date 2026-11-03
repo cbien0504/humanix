@@ -12,11 +12,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * Failure scenario "database connection lost" with the real pool and driver: nothing listens on
- * 127.0.0.1:1, so every connection attempt is refused. The request must fail fast with 503 – not
- * hang a Tomcat thread, not surface as a 500 with a stack trace.
- */
 class DatabaseOutageTest {
 
     @Test
@@ -27,7 +22,7 @@ class DatabaseOutageTest {
                 "db.pool.minimumIdle", "0",
                 "db.pool.connectionTimeoutMs", "500"));
 
-        try (HikariDataSource pool = DataSourceFactory.create(config)) {      // starts even though the DB is down
+        try (HikariDataSource pool = DataSourceFactory.create(config)) {
             JdbcExecutor jdbc = new JdbcExecutor(pool, () -> "test", 1_000);
             long start = System.nanoTime();
 

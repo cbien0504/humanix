@@ -33,11 +33,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Recruitment (UC-40 … UC-43): job postings, candidates and their pipeline.
- * HR manages everything; managers see postings of their departments and may only rate
- * candidates, plan interviews and write notes.
- */
 public class RecruitmentService {
 
     private static final Set<String> EMPLOYMENT_TYPES = Set.of("FULL_TIME", "PART_TIME", "CONTRACT", "INTERN");
@@ -62,15 +57,11 @@ public class RecruitmentService {
         this.clock = clock;
     }
 
-    /** A candidate with its pipeline history and the stages it may move to. */
     public record CandidateDetail(Candidate candidate, List<StageChange> history, Set<CandidateStage> nextStages) {
     }
 
-    /** Pipeline board of one posting. */
     public record Pipeline(JobPosting job, Map<CandidateStage, List<Candidate>> columns) {
     }
-
-    // ------------------------------------------------------------------ job postings
 
     public Page<JobPosting> searchJobs(AuthUser user, String keyword, JobStatus status, Long departmentId, PageRequest page) {
         return recruitmentDao.searchJobs(keyword, status, departmentId, scope(user), page);
@@ -138,8 +129,6 @@ public class RecruitmentService {
         return new Pipeline(job, columns);
     }
 
-    // ------------------------------------------------------------------ candidates
-
     public Page<Candidate> searchCandidates(AuthUser user, Long jobId, CandidateStage stage, String keyword, PageRequest page) {
         return recruitmentDao.searchCandidates(jobId, stage, keyword, scope(user), page);
     }
@@ -148,7 +137,7 @@ public class RecruitmentService {
         Candidate c = loadCandidate(id);
         checkJobScope(user, c.getJobPostingId());
         Set<CandidateStage> next = c.getStage().next();
-        next.remove(CandidateStage.HIRED);           // hiring has its own action
+        next.remove(CandidateStage.HIRED);
         return new CandidateDetail(c, recruitmentDao.history(id), next);
     }
 
@@ -160,12 +149,11 @@ public class RecruitmentService {
         if (job.getStatus() != JobStatus.OPEN) {
             throw new BusinessException("Chỉ nhận hồ sơ cho tin đang tuyển (trạng thái hiện tại: " + job.getStatus().getLabel() + ").");
         }
-        long id = recruitmentDao.insertCandidate(f);    // UQ_Candidates_JobEmail → "đã nộp hồ sơ"
+        long id = recruitmentDao.insertCandidate(f);
         audit.record("CANDIDATE_ADDED", "Candidate", id, f.fullName() + " → " + job.getJobCode());
         return loadCandidate(id);
     }
 
-    /** HR edits everything; a manager in scope only rating, interview time and notes. */
     public Candidate updateCandidate(AuthUser user, long id, CandidateForm form) {
         Candidate current = loadCandidate(id);
         CandidateForm f = normalize(form);
@@ -208,10 +196,6 @@ public class RecruitmentService {
         audit.record("CANDIDATE_DELETED", "Candidate", id, c.getFullName());
     }
 
-    /**
-     * UC-43 / BR-43: creates a probationary employee from a candidate in OFFER, marks the
-     * candidate HIRED and closes the posting when all openings are filled – atomically.
-     */
     public Employee hire(long candidateId, HireRequest req) {
         Candidate c = loadCandidate(candidateId);
         if (c.getStage() != CandidateStage.OFFER) {
@@ -241,8 +225,6 @@ public class RecruitmentService {
     public Map<String, Long> stats() {
         return recruitmentDao.recruitmentStats();
     }
-
-    // ------------------------------------------------------------------ helpers
 
     private Long scope(AuthUser user) {
         if (user.isHrOrAdmin()) {

@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-/** Persistence of login accounts and their roles. */
 public interface UserDao {
 
     Optional<User> findByUsername(String username);
@@ -30,16 +29,11 @@ public interface UserDao {
 
     void recordLoginSuccess(long userId, Instant at);
 
-    /**
-     * Atomically increments the failure counter and locks the account when it reaches
-     * {@code maxFailures}. Returns the new counter value.
-     */
     int recordLoginFailure(long userId, int maxFailures, Instant lockUntil);
 
     void unlock(long userId);
 
     boolean existsByEmployeeId(long employeeId);
 
-    /** Employees (id → "code – name") that are still working and have no account yet. */
     List<Map<String, Object>> findEmployeesWithoutAccount();
 }

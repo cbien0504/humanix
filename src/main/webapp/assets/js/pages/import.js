@@ -1,4 +1,3 @@
-/* Employee import (UC-17): multipart upload with the CSRF header, per-row error report */
 $(function () {
     'use strict';
     var lastResult = null;
@@ -54,7 +53,7 @@ $(function () {
         function csv(v) {
             var s = String(v === null || v === undefined ? '' : v);
             if (/^[=+\-@\t\r]/.test(s)) {
-                s = "'" + s;                       // neutralise spreadsheet formulas
+                s = "'" + s;
             }
             return '"' + s.replace(/"/g, '""') + '"';
         }

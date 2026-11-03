@@ -39,7 +39,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-/** Leave rules BR-20 … BR-25; "today" is Monday 2026-11-02. */
 @ExtendWith(MockitoExtension.class)
 class LeaveServiceTest {
 
@@ -116,9 +115,9 @@ class LeaveServiceTest {
             when(leaveDao.insert(eq(16L), any(LeaveRequestForm.class), eq(BigDecimal.valueOf(2)))).thenReturn(7L);
             when(leaveDao.findById(7)).thenReturn(Optional.of(request(7, 16, LeaveStatus.PENDING, FRI_6)));
 
-            service.submit(Fixtures.employee(16), form(2, FRI_6, TUE_10));      // Fri + Tue only
+            service.submit(Fixtures.employee(16), form(2, FRI_6, TUE_10));
 
-            verify(leaveDao, never()).balances(anyLong(), anyInt());  // sick leave needs no balance
+            verify(leaveDao, never()).balances(anyLong(), anyInt());
         }
 
         @Test

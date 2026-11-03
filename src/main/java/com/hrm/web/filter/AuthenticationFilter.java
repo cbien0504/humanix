@@ -20,17 +20,6 @@ import java.security.MessageDigest;
 import java.util.EnumSet;
 import java.util.Set;
 
-/**
- * Identifies the caller:
- * <ul>
- *   <li>browser users by the {@link AuthUser} stored in the HTTP session;</li>
- *   <li>external systems by the {@code X-API-Key} header on {@code /api/**} (constant-time
- *       comparison; the key comes from the environment, API access is disabled when empty).</li>
- * </ul>
- * Anonymous page requests are redirected to the login page (with a safe relative "next"),
- * anonymous AJAX/API requests get 401. Users flagged "must change password" can only reach the
- * change-password page.
- */
 public class AuthenticationFilter extends HttpFilter {
 
     public static final String MUST_CHANGE_PASSWORD = "mustChangePassword";
@@ -73,7 +62,6 @@ public class AuthenticationFilter extends HttpFilter {
 
         if (sessionUser == null) {
             if (WebContext.wantsJson(req)) {
-                // a browser whose session timed out still sends its cookie; an integration client sends nothing
                 resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, req.getRequestedSessionId() != null
                         ? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
                         : "Chưa xác thực: đăng nhập hoặc gửi header X-API-Key.");

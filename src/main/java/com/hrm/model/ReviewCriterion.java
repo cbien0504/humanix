@@ -2,7 +2,6 @@ package com.hrm.model;
 
 import java.math.BigDecimal;
 
-/** Weighted evaluation criterion (table ReviewCriteria). */
 public class ReviewCriterion {
 
     private final long criteriaId;

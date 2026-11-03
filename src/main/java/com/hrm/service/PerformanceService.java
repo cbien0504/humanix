@@ -24,10 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Performance management (UC-50 … UC-53, BR-50 … BR-53).
- * Cycle: DRAFT → OPEN (reviews generated) → CLOSED. Review: PENDING_SELF → PENDING_MANAGER → COMPLETED.
- */
 public class PerformanceService {
 
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
@@ -42,11 +38,8 @@ public class PerformanceService {
         this.tx = tx;
     }
 
-    /** What the current user may do with a review (drives the form mode). */
     public record ReviewView(PerformanceReview review, boolean canSelfAssess, boolean canManagerAssess) {
     }
-
-    // ------------------------------------------------------------------ cycles (HR)
 
     public List<ReviewCycle> cycles() {
         return dao.cycles();
@@ -88,7 +81,6 @@ public class PerformanceService {
         audit.record("REVIEW_CYCLE_DELETED", "ReviewCycle", id, c.getCycleName());
     }
 
-    /** Opens a draft cycle and creates the reviews of every eligible employee. */
     public ReviewCycle openCycle(long id) {
         ReviewCycle c = cycle(id);
         if (c.getStatus() != CycleStatus.DRAFT) {
@@ -127,13 +119,10 @@ public class PerformanceService {
         return m;
     }
 
-    // ------------------------------------------------------------------ reviews
-
     public Page<PerformanceReview> myReviews(AuthUser user, PageRequest page) {
         return dao.searchReviews(null, null, null, requireEmployee(user), null, page);
     }
 
-    /** HR: all reviews; managers: reviews where they are the reviewer. */
     public Page<PerformanceReview> reviews(AuthUser user, Long cycleId, ReviewStatus status, String keyword, PageRequest page) {
         if (user.isHrOrAdmin()) {
             return dao.searchReviews(cycleId, status, keyword, null, null, page);
@@ -193,8 +182,6 @@ public class PerformanceService {
         audit.record("REVIEW_COMPLETED", "PerformanceReview", reviewId, r.getEmployeeCode() + " " + finalScore + " (" + rating + ")");
         return load(reviewId);
     }
-
-    // ------------------------------------------------------------------ helpers
 
     private static Map<Long, Integer> validateScores(ScoreSubmission s, List<ReviewCriterion> criteria) {
         Map<String, String> errors = new HashMap<>();

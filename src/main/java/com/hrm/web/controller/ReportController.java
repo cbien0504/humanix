@@ -12,10 +12,6 @@ import com.hrm.web.WebContext;
 import java.io.IOException;
 import java.time.LocalDate;
 
-/**
- * {@code /reports}: report page and Excel/CSV downloads
- * ({@code /reports/departments/export}, {@code /reports/attendance/export}, {@code /reports/employees/export}).
- */
 public class ReportController extends BaseController {
 
     private static final long serialVersionUID = 1L;

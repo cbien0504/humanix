@@ -1,6 +1,5 @@
 package com.hrm.model;
 
-/** Payroll period status (CK_PayrollPeriods_Status): OPEN → CALCULATED → APPROVED → PAID. */
 public enum PayrollStatus {
     OPEN("Mở"),
     CALCULATED("Đã tính"),
@@ -17,7 +16,6 @@ public enum PayrollStatus {
         return label;
     }
 
-    /** BR-30: approved and paid periods are frozen. */
     public boolean isRecalculable() {
         return this == OPEN || this == CALCULATED;
     }

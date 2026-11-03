@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.function.Function;
 
-/** One page of results plus the total count, serialised as JSON for AJAX tables and the API. */
 public record Page<T>(List<T> items, int page, int size, long totalItems) {
 
     @JsonProperty("totalPages")

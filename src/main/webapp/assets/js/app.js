@@ -1,10 +1,3 @@
-/*!
- * HRM front-end core (jQuery 3).
- * Rules followed by every page script:
- *   - no inline JavaScript in JSPs (the Content-Security-Policy forbids it);
- *   - untrusted data is inserted with .text() / jQuery element builders, never as HTML strings;
- *   - every AJAX call carries the CSRF token (X-CSRF-Token header).
- */
 (function (window, $) {
     'use strict';
 
@@ -22,7 +15,6 @@
         return ctx + path;
     };
 
-    /** HTML-escapes a value (only for the rare places that must build markup strings). */
     HRM.esc = function (value) {
         if (value === null || value === undefined) {
             return '';
@@ -36,7 +28,6 @@
         return new URLSearchParams(window.location.search).get(name);
     };
 
-    // ------------------------------------------------------------------ formatting
     var moneyFormat = new Intl.NumberFormat('vi-VN', {maximumFractionDigits: 0});
     HRM.fmt = {
         money: function (v) {
@@ -48,7 +39,6 @@
             }
             return new Intl.NumberFormat('vi-VN', {maximumFractionDigits: digits === undefined ? 1 : digits}).format(Number(v));
         },
-        /** "2026-11-02" or "2026-11-02T08:15:00" → "02/11/2026" */
         date: function (iso) {
             if (!iso) {
                 return '';
@@ -56,7 +46,6 @@
             var p = String(iso).substring(0, 10).split('-');
             return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : String(iso);
         },
-        /** local date-time "2026-11-02T08:15:00" → "08:15" */
         time: function (iso) {
             if (!iso) {
                 return '';
@@ -64,11 +53,9 @@
             var t = String(iso).split('T')[1] || '';
             return t.substring(0, 5);
         },
-        /** local date-time → "02/11/2026 08:15" */
         localDateTime: function (iso) {
             return iso ? HRM.fmt.date(iso) + ' ' + HRM.fmt.time(iso) : '';
         },
-        /** UTC instant "2026-11-02T01:15:00Z" → browser local "02/11/2026, 08:15" */
         instant: function (iso) {
             if (!iso) {
                 return '';
@@ -78,7 +65,6 @@
         }
     };
 
-    // ------------------------------------------------------------------ labels & badges
     HRM.labels = {
         employeeStatus: {PROBATION: ['Thử việc', 'warning'], ACTIVE: ['Chính thức', 'success'], ON_LEAVE: ['Nghỉ dài hạn', 'info'], TERMINATED: ['Đã nghỉ việc', 'secondary']},
         attendanceStatus: {PRESENT: ['Đúng giờ', 'success'], LATE: ['Đi muộn', 'warning'], HALF_DAY: ['Nửa ngày', 'info'], ABSENT: ['Vắng', 'danger']},
@@ -108,7 +94,6 @@
         return $('<span class="badge">').addClass('text-bg-' + def[1]).text(def[0]);
     };
 
-    // ------------------------------------------------------------------ toasts
     HRM.toast = function (message, type) {
         type = type || 'success';
         var icon = {success: 'check-circle-fill', danger: 'exclamation-octagon-fill', warning: 'exclamation-triangle-fill', info: 'info-circle-fill'}[type];
@@ -128,7 +113,6 @@
         bootstrap.Toast.getOrCreateInstance($toast[0], {delay: type === 'danger' ? 7000 : 4000}).show();
     };
 
-    // ------------------------------------------------------------------ AJAX
     HRM.errorMessage = function (xhr) {
         var body = xhr.responseJSON;
         if (body && body.message) {
@@ -140,12 +124,6 @@
         return 'Lỗi ' + xhr.status + (xhr.statusText ? ': ' + xhr.statusText : '');
     };
 
-    /**
-     * JSON request helper returning a jQuery promise.
-     * options.form   – a form whose fields receive server-side fieldErrors
-     * options.silent – do not show an error toast
-     * A 401 (session expired) redirects to the login page.
-     */
     HRM.api = function (method, path, data, options) {
         options = options || {};
         var settings = {url: HRM.url(path), method: method, dataType: 'json'};
@@ -185,7 +163,6 @@
         return HRM.api('DELETE', path, null, options);
     };
 
-    // ------------------------------------------------------------------ forms
     var RULES = {
         phone: [/^(0|\+84)\d{9}$/, 'Số điện thoại không hợp lệ (VD: 0912345678).'],
         nationalId: [/^\d{12}$/, 'CCCD gồm đúng 12 chữ số.'],
@@ -194,7 +171,6 @@
     };
 
     HRM.form = {
-        /** Named fields → plain object; blank → null; data-type="number" → Number; checkbox → boolean. */
         toObject: function ($form) {
             var obj = {};
             $form.find('input[name], select[name], textarea[name]').each(function () {
@@ -246,7 +222,6 @@
             });
         },
 
-        /** Shows server-side field errors under their inputs; other errors in .form-alert. */
         showErrors: function ($form, fieldErrors, generalMessage) {
             var unplaced = [];
             $.each(fieldErrors || {}, function (field, message) {
@@ -268,10 +243,8 @@
             $form.find('.is-invalid').first().trigger('focus');
         },
 
-        /** HTML5 constraint validation + custom rules (data-rule, data-match, data-after). */
         validate: function ($form) {
             HRM.form.clearErrors($form);
-            // drop the inline display left by showErrors(); .show() would force EVERY message visible
             $form.find('.invalid-feedback').not('.server').css('display', '');
             $form.find('[data-rule]').each(function () {
                 var rule = RULES[$(this).data('rule')];
@@ -299,14 +272,12 @@
         }
     };
 
-    // auto upper-case for code inputs
     $(document).on('input', 'input[data-uppercase]', function () {
         var pos = this.selectionStart;
         this.value = this.value.toUpperCase();
         this.setSelectionRange(pos, pos);
     });
 
-    /** Fills a <select> with options built from items (text via .text(), never HTML). */
     HRM.fillSelect = function ($select, items, valueKey, textFn, placeholder) {
         var current = $select.val();
         $select.empty();
@@ -325,11 +296,6 @@
         return bootstrap.Modal.getOrCreateInstance($(selector)[0]);
     };
 
-    /**
-     * Promise-based confirmation dialog.
-     * options: title, okText, variant ('primary'|'danger'…), input (true = ask for a text),
-     *          inputRequired, placeholder. Resolves with the entered text (or null).
-     */
     HRM.confirm = function (message, options) {
         options = options || {};
         var deferred = $.Deferred();
@@ -370,13 +336,6 @@
         return deferred.promise();
     };
 
-    // ------------------------------------------------------------------ data table
-    /**
-     * Server-side paged table bound to an endpoint returning
-     * {items, page, size, totalItems, totalPages}.
-     * options.columns: [{title, key | render(row) → text or jQuery element, sortKey, className}]
-     * options.filterForm: form whose fields are sent as query parameters.
-     */
     function DataTable($table, options) {
         this.$table = $table;
         this.o = $.extend({size: 10, emptyText: 'Không có dữ liệu.'}, options);
@@ -529,7 +488,6 @@
 
     HRM.DataTable = DataTable;
 
-    /** Small debounce helper. */
     HRM.debounce = function (fn, ms) {
         var t;
         return function () {

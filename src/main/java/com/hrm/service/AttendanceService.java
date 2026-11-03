@@ -31,10 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Attendance use cases (UC-20 … UC-22). Check-in/out times always come from the server clock
- * (BR-10) – the client cannot choose its own time.
- */
 public class AttendanceService {
 
     private static final DateTimeFormatter HH_MM = DateTimeFormatter.ofPattern("HH:mm");
@@ -56,20 +52,16 @@ public class AttendanceService {
         this.clock = clock;
     }
 
-    /** Today's record of the current user plus server time and schedule (for the check-in widget). */
     public record Today(LocalDateTime serverTime, String workStart, int graceMinutes, AttendanceRecord record,
                         boolean onLeave) {
     }
 
-    /** Records and summary of one month. */
     public record MonthView(int year, int month, MonthlyAttendance summary, List<AttendanceRecord> records) {
     }
 
-    /** Outcome of one element of a bulk upload. */
     public record BulkItemResult(int index, String employeeCode, LocalDate workDate, boolean ok, String status, String message) {
     }
 
-    /** Outcome of a bulk upload: every element is processed independently. */
     public record BulkResult(int received, int saved, int failed, List<BulkItemResult> results) {
     }
 
@@ -95,7 +87,7 @@ public class AttendanceService {
             throw new BusinessException("Hôm nay bạn đang trong thời gian nghỉ phép đã được duyệt.");
         }
         AttendancePolicy.CheckInResult result = policy.evaluateCheckIn(now.toLocalTime());
-        if (existing.isPresent()) {   // e.g. HR pre-created an ABSENT row
+        if (existing.isPresent()) {
             attendanceDao.update(existing.get().getAttendanceId(), now, null, result.status(), result.lateMinutes(), "WEB",
                     existing.get().getNote());
         } else {
@@ -128,7 +120,6 @@ public class AttendanceService {
         return new MonthView(m.getYear(), m.getMonthValue(), summary, records);
     }
 
-    /** HR: everyone · Manager: own team · Employee: own records. */
     public Page<AttendanceRecord> search(AuthUser user, AttendanceFilter filter, PageRequest page) {
         if (filter.from() != null && filter.to() != null && ChronoUnit.DAYS.between(filter.from(), filter.to()) > 366) {
             throw new BusinessException("Khoảng thời gian tra cứu tối đa 1 năm.");
@@ -142,10 +133,6 @@ public class AttendanceService {
         return attendanceDao.search(filter.scopedTo(requireEmployee(user), null), page);
     }
 
-    /**
-     * Creates or corrects the record of an employee/day (HR manual entry, time-clock import).
-     * Status is derived from the times unless ABSENT is given explicitly.
-     */
     public AttendanceRecord save(AttendanceForm form, String source) {
         Validator v = new Validator()
                 .check(form.employeeId() != null || form.employeeCode() != null, "employeeId", "Vui lòng chọn nhân viên.")
@@ -198,10 +185,6 @@ public class AttendanceService {
         return attendanceDao.findById(id).orElseThrow();
     }
 
-    /**
-     * UC-71: time-clock / external system upload. Elements are independent – one bad punch does
-     * not reject the others – and the response lists the result of every element.
-     */
     public BulkResult saveBatch(List<AttendanceForm> items) {
         if (items == null || items.isEmpty()) {
             throw new ValidationException("body", "Danh sách chấm công rỗng.");

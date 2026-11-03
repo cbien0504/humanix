@@ -26,16 +26,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-/**
- * Leave requests and approval workflow (UC-23 … UC-27, BR-20 … BR-25).
- * <pre>
- * PENDING ──approve──▶ APPROVED ──cancel (before start)──▶ CANCELLED
- *    │  └────reject───▶ REJECTED
- *    └──────cancel────▶ CANCELLED
- * </pre>
- * Balances are kept in sync by the database trigger; this service validates first so the user
- * gets a clear message, and status changes use an optimistic "WHERE Status = expected" update.
- */
 public class LeaveService {
 
     private static final DateTimeFormatter DMY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -65,7 +55,6 @@ public class LeaveService {
         return leaveDao.balances(requireEmployee(user), year);
     }
 
-    /** Number of working days in a range (preview while the user fills the form). */
     public int workingDays(LocalDate start, LocalDate end) {
         if (start == null || end == null || end.isBefore(start)) {
             return 0;
@@ -77,7 +66,6 @@ public class LeaveService {
         return leaveDao.search(filter.scopedTo(requireEmployee(user), null), page);
     }
 
-    /** Requests visible to an approver: HR all, managers their team. */
     public Page<LeaveRequest> approvalQueue(AuthUser user, LeaveFilter filter, PageRequest page) {
         if (user.isHrOrAdmin()) {
             return leaveDao.search(filter.scopedTo(null, null), page);
@@ -176,8 +164,6 @@ public class LeaveService {
         }
         return user.getEmployeeId() == null ? 0 : leaveDao.countPending(user.getEmployeeId());
     }
-
-    // ------------------------------------------------------------------ internals
 
     private LeaveRequest decide(AuthUser approver, long id, LeaveStatus target, String comment) {
         LeaveRequest r = load(id);

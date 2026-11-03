@@ -3,7 +3,6 @@ package com.hrm.model;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-/** Monthly payroll period with totals (table PayrollPeriods). */
 public class PayrollPeriod {
 
     private long periodId;

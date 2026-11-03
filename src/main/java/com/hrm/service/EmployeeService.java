@@ -30,14 +30,6 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-/**
- * Employee information management (UC-12 … UC-16).
- * <p>
- * Data scope: HR/Admin see everyone; managers see their team (direct reports + departments
- * they manage) without salary/bank/ID data; employees only see themselves.
- * All business rules BR-01 … BR-07 are validated here before the database constraints act as
- * the final safety net.
- */
 public class EmployeeService {
 
     static final Pattern TAX_CODE = Pattern.compile("^\\d{10}(\\d{3})?$");
@@ -60,8 +52,6 @@ public class EmployeeService {
         this.clock = clock;
     }
 
-    // ------------------------------------------------------------------ queries
-
     public Page<Employee> search(AuthUser user, EmployeeFilter filter, PageRequest page) {
         if (user.isHrOrAdmin()) {
             return employeeDao.search(filter.withTeamOf(null), page);
@@ -73,7 +63,6 @@ public class EmployeeService {
         throw new ForbiddenException();
     }
 
-    /** One employee, checked against the caller's data scope (prevents IDOR). */
     public Employee get(AuthUser user, long id) {
         Employee e = employeeDao.findById(id).orElseThrow(() -> NotFoundException.of("nhân viên", id));
         if (user.isHrOrAdmin() || isSelf(user, id)) {
@@ -85,7 +74,6 @@ public class EmployeeService {
         throw new ForbiddenException("Bạn không có quyền xem hồ sơ nhân viên này.");
     }
 
-    /** Lookup by employee code (integration API), same data scope as {@link #get}. */
     public Employee getByCode(AuthUser user, String code) {
         Employee e = employeeDao.findByCode(Validator.upper(code))
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy nhân viên mã " + code + "."));
@@ -106,8 +94,6 @@ public class EmployeeService {
     public String nextCode() {
         return employeeDao.nextCode(CODE_PREFIX);
     }
-
-    // ------------------------------------------------------------------ commands
 
     public Employee create(EmployeeForm form) {
         EmployeeForm f = normalize(form);
@@ -133,7 +119,6 @@ public class EmployeeService {
         return employeeDao.findById(id).orElseThrow();
     }
 
-    /** BR-06: only employees without business data can be removed; others must be terminated. */
     public void delete(long id) {
         Employee e = employeeDao.findById(id).orElseThrow(() -> NotFoundException.of("nhân viên", id));
         List<String> deps = employeeDao.dependencies(id);
@@ -145,8 +130,6 @@ public class EmployeeService {
         audit.record("EMPLOYEE_DELETED", "Employee", id, e.getEmployeeCode() + " – " + e.getFullName());
     }
 
-    // ------------------------------------------------------------------ validation
-
     EmployeeForm normalize(EmployeeForm f) {
         return new EmployeeForm(Validator.upper(f.employeeCode()), Validator.clean(f.fullName()), Validator.upper(f.gender()),
                 f.dateOfBirth(), Validator.lower(f.email()), Validator.clean(f.phone()), Validator.clean(f.address()),
@@ -156,11 +139,6 @@ public class EmployeeService {
                 f.allowance() == null ? BigDecimal.ZERO : f.allowance(), f.dependents() == null ? 0 : f.dependents());
     }
 
-    /**
-     * Validates all business rules of an employee record.
-     *
-     * @param id {@code null} when creating
-     */
     void validate(Long id, EmployeeForm f) {
         LocalDate today = LocalDate.now(clock);
         Validator v = new Validator()

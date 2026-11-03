@@ -26,7 +26,7 @@ class ValidatorTest {
     void collectsTheFirstMessagePerFieldAndThrowsOnce() {
         Validator v = new Validator()
                 .required("fullName", "  ", "Vui lòng nhập họ tên.")
-                .maxLength("fullName", "x".repeat(200), 150)            // second failure of the same field is ignored
+                .maxLength("fullName", "x".repeat(200), 150)
                 .email("email", "abc@")
                 .nonNegative("baseSalary", new BigDecimal("-1"), "Lương cơ bản không được âm.")
                 .range("dependents", 21, 0, 20, "Số người phụ thuộc từ 0 đến 20.")
@@ -75,11 +75,6 @@ class ValidatorTest {
         assertThat(Validator.lower(" Hung.NV@Example.COM ")).isEqualTo("hung.nv@example.com");
     }
 
-    /**
-     * Regression: String.toLowerCase() without a locale follows the JVM default. On a server whose
-     * locale is Turkish, "I" lower-cases to dotless "ı" – e-mails and usernames would be stored
-     * corrupted ("admın@…") and logins would stop matching.
-     */
     @Test
     void caseConversionDoesNotDependOnTheServerLocale() {
         Locale.setDefault(Locale.forLanguageTag("tr-TR"));

@@ -2,11 +2,6 @@ package com.hrm.security;
 
 import java.security.SecureRandom;
 
-/**
- * Password rules (NFR-01): at least {@code minLength} characters with upper case, lower case
- * and a digit, and not equal to the username. Also generates temporary passwords that satisfy
- * the policy.
- */
 public class PasswordPolicy {
 
     private static final String UPPER = "ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -20,7 +15,6 @@ public class PasswordPolicy {
         this.minLength = minLength;
     }
 
-    /** @return the violation message, or {@code null} when the password is acceptable */
     public String check(String password, String username) {
         if (password == null || password.length() < minLength) {
             return "Mật khẩu phải có ít nhất " + minLength + " ký tự.";
@@ -39,7 +33,6 @@ public class PasswordPolicy {
         return null;
     }
 
-    /** Random 12-character password containing every character class. */
     public String generateTemporary() {
         String all = UPPER + LOWER + DIGITS + SYMBOLS;
         char[] chars = new char[12];
@@ -50,7 +43,7 @@ public class PasswordPolicy {
         for (int i = 4; i < chars.length; i++) {
             chars[i] = all.charAt(random.nextInt(all.length()));
         }
-        for (int i = chars.length - 1; i > 0; i--) {          // Fisher–Yates shuffle
+        for (int i = chars.length - 1; i > 0; i--) {
             int j = random.nextInt(i + 1);
             char t = chars[i];
             chars[i] = chars[j];

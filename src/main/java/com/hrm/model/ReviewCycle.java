@@ -3,7 +3,6 @@ package com.hrm.model;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-/** Review cycle (table ReviewCycles) with its progress counters. */
 public class ReviewCycle {
 
     private long cycleId;

@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** JDBC implementation of {@link EmployeeDao}; reads go through the view vw_EmployeeDetails. */
 public class JdbcEmployeeDao implements EmployeeDao {
 
     static final String SELECT = """
@@ -29,7 +28,6 @@ public class JdbcEmployeeDao implements EmployeeDao {
             FROM dbo.vw_EmployeeDetails AS e
             """;
 
-    /** Whitelist: API sort key → column (ORDER BY cannot be a bind parameter). */
     static final Map<String, String> SORT_COLUMNS = Map.of(
             "code", "e.EmployeeCode", "name", "e.FullName", "department", "e.DepartmentName",
             "position", "e.PositionName", "hireDate", "e.HireDate", "status", "e.Status", "salary", "e.BaseSalary");

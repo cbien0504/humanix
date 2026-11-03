@@ -1,25 +1,7 @@
-/* =============================================================================
-   HRM System – schema: tables, keys, constraints, indexes
-   Target : Microsoft SQL Server 2019+ (tested on 2022)
-   Run in : database HRM   (sqlcmd -d HRM -i db/schema.sql)
-   ---------------------------------------------------------------------------
-   WARNING: this script DROPS every user object in the current database before
-   re-creating the schema. It is meant for a dedicated HRM database only.
-   Execution order of the full setup: see db/init-db.sh
-   ---------------------------------------------------------------------------
-   Conventions
-     * PK  : <Table>Id INT/BIGINT IDENTITY, constraint PK_<Table>
-     * FK  : FK_<Child>_<Parent>, UNIQUE: UQ_/UX_, CHECK: CK_, DEFAULT: DF_
-     * Money: DECIMAL(18,2) VND; dates: DATE; event timestamps: DATETIME2 UTC
-       (SYSUTCDATETIME()); attendance check-in/out: local company time.
-   ============================================================================= */
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 GO
 
-/* -----------------------------------------------------------------------------
-   0. Clean slate – drop views, procedures, functions, FKs, tables
-   ----------------------------------------------------------------------------- */
 DECLARE @sql NVARCHAR(MAX) = N'';
 SELECT @sql += N'DROP VIEW ' + QUOTENAME(SCHEMA_NAME(schema_id)) + N'.' + QUOTENAME(name) + N';'
 FROM sys.views WHERE is_ms_shipped = 0;
@@ -35,9 +17,6 @@ FROM sys.tables WHERE is_ms_shipped = 0;
 EXEC sys.sp_executesql @sql;
 GO
 
-/* -----------------------------------------------------------------------------
-   1. Security: Roles, Users, UserRoles  (Users.EmployeeId FK added in section 3)
-   ----------------------------------------------------------------------------- */
 CREATE TABLE dbo.Roles (
     RoleId      INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Roles PRIMARY KEY,
     RoleCode    VARCHAR(20)   NOT NULL CONSTRAINT UQ_Roles_RoleCode UNIQUE,
@@ -58,7 +37,6 @@ CREATE TABLE dbo.Users (
     CreatedAt          DATETIME2(0) NOT NULL CONSTRAINT DF_Users_CreatedAt DEFAULT (SYSUTCDATETIME()),
     UpdatedAt          DATETIME2(0) NULL,
     CONSTRAINT CK_Users_Username     CHECK (LEN(Username) >= 2 AND Username NOT LIKE '%[^a-zA-Z0-9._-]%'),
-    -- Defence in depth: only BCrypt hashes can ever be stored, never plain text.
     CONSTRAINT CK_Users_PasswordHash CHECK (PasswordHash LIKE '$2[aby]$[0-9][0-9]$%'),
     CONSTRAINT CK_Users_FailedLogin  CHECK (FailedLoginCount >= 0)
 );
@@ -73,15 +51,12 @@ CREATE TABLE dbo.UserRoles (
 );
 CREATE INDEX IX_UserRoles_RoleId ON dbo.UserRoles (RoleId);
 
-/* -----------------------------------------------------------------------------
-   2. Organisation: Departments, Positions
-   ----------------------------------------------------------------------------- */
 CREATE TABLE dbo.Departments (
     DepartmentId   INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Departments PRIMARY KEY,
     DepartmentCode VARCHAR(20)   NOT NULL CONSTRAINT UQ_Departments_Code UNIQUE,
     DepartmentName NVARCHAR(150) NOT NULL CONSTRAINT UQ_Departments_Name UNIQUE,
     Description    NVARCHAR(500) NULL,
-    ManagerId      INT           NULL,      -- FK to Employees, added after Employees exists
+    ManagerId      INT           NULL,
     IsActive       BIT           NOT NULL CONSTRAINT DF_Departments_IsActive DEFAULT (1),
     CreatedAt      DATETIME2(0)  NOT NULL CONSTRAINT DF_Departments_CreatedAt DEFAULT (SYSUTCDATETIME()),
     UpdatedAt      DATETIME2(0)  NULL,
@@ -106,9 +81,6 @@ CREATE TABLE dbo.Positions (
     CONSTRAINT CK_Positions_SalaryRange CHECK (MinSalary >= 0 AND MaxSalary >= MinSalary)
 );
 
-/* -----------------------------------------------------------------------------
-   3. Employees
-   ----------------------------------------------------------------------------- */
 CREATE TABLE dbo.Employees (
     EmployeeId      INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Employees PRIMARY KEY,
     EmployeeCode    VARCHAR(20)   NOT NULL CONSTRAINT UQ_Employees_EmployeeCode UNIQUE,
@@ -118,7 +90,7 @@ CREATE TABLE dbo.Employees (
     Email           VARCHAR(150)  NOT NULL CONSTRAINT UQ_Employees_Email UNIQUE,
     Phone           VARCHAR(20)   NULL,
     Address         NVARCHAR(300) NULL,
-    NationalId      VARCHAR(12)   NULL,     -- CCCD, unique when present (filtered index below)
+    NationalId      VARCHAR(12)   NULL,
     TaxCode         VARCHAR(14)   NULL,
     BankAccount     VARCHAR(30)   NULL,
     BankName        NVARCHAR(100) NULL,
@@ -160,7 +132,6 @@ ALTER TABLE dbo.Departments ADD CONSTRAINT FK_Departments_Manager
     FOREIGN KEY (ManagerId) REFERENCES dbo.Employees (EmployeeId);
 CREATE INDEX IX_Departments_ManagerId ON dbo.Departments (ManagerId) WHERE ManagerId IS NOT NULL;
 
--- Deleting an employee (only allowed when no business data exists) also removes the login.
 ALTER TABLE dbo.Users ADD CONSTRAINT FK_Users_Employees
     FOREIGN KEY (EmployeeId) REFERENCES dbo.Employees (EmployeeId) ON DELETE CASCADE;
 CREATE UNIQUE INDEX UX_Users_EmployeeId ON dbo.Users (EmployeeId) WHERE EmployeeId IS NOT NULL;
@@ -178,9 +149,6 @@ CREATE TABLE dbo.SalaryHistory (
 );
 CREATE INDEX IX_SalaryHistory_Employee ON dbo.SalaryHistory (EmployeeId, ChangedAt DESC);
 
-/* -----------------------------------------------------------------------------
-   4. Attendance & leave
-   ----------------------------------------------------------------------------- */
 CREATE TABLE dbo.Holidays (
     HolidayDate DATE          NOT NULL CONSTRAINT PK_Holidays PRIMARY KEY,
     HolidayName NVARCHAR(150) NOT NULL
@@ -208,7 +176,6 @@ CREATE TABLE dbo.Attendance (
     CONSTRAINT CK_Attendance_Late       CHECK (LateMinutes >= 0),
     CONSTRAINT CK_Attendance_Source     CHECK (Source IN ('WEB', 'API', 'MANUAL', 'IMPORT'))
 );
--- Covering index for month/date-range reports across all employees (see docs/03-query-optimization.md)
 CREATE INDEX IX_Attendance_WorkDate ON dbo.Attendance (WorkDate)
     INCLUDE (EmployeeId, Status, LateMinutes, WorkHours);
 
@@ -216,7 +183,7 @@ CREATE TABLE dbo.LeaveTypes (
     LeaveTypeId       INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_LeaveTypes PRIMARY KEY,
     LeaveTypeCode     VARCHAR(20)   NOT NULL CONSTRAINT UQ_LeaveTypes_Code UNIQUE,
     LeaveTypeName     NVARCHAR(100) NOT NULL,
-    IsPaid            BIT           NOT NULL,   -- company pays salary for these days
+    IsPaid            BIT           NOT NULL,
     RequiresBalance   BIT           NOT NULL CONSTRAINT DF_LeaveTypes_RequiresBalance DEFAULT (0),
     MaxDaysPerRequest DECIMAL(5,1)  NULL,
     IsActive          BIT           NOT NULL CONSTRAINT DF_LeaveTypes_IsActive DEFAULT (1),
@@ -234,7 +201,6 @@ CREATE TABLE dbo.LeaveBalances (
     CONSTRAINT PK_LeaveBalances PRIMARY KEY (EmployeeId, LeaveTypeId, BalanceYear),
     CONSTRAINT FK_LeaveBalances_Employees  FOREIGN KEY (EmployeeId)  REFERENCES dbo.Employees (EmployeeId),
     CONSTRAINT FK_LeaveBalances_LeaveTypes FOREIGN KEY (LeaveTypeId) REFERENCES dbo.LeaveTypes (LeaveTypeId),
-    -- Last line of defence: approved leave can never exceed the entitlement.
     CONSTRAINT CK_LeaveBalances_Days CHECK (EntitledDays >= 0 AND UsedDays >= 0 AND UsedDays <= EntitledDays)
 );
 
@@ -244,7 +210,7 @@ CREATE TABLE dbo.LeaveRequests (
     LeaveTypeId     INT           NOT NULL,
     StartDate       DATE          NOT NULL,
     EndDate         DATE          NOT NULL,
-    TotalDays       DECIMAL(5,1)  NOT NULL,   -- working days, computed by the application
+    TotalDays       DECIMAL(5,1)  NOT NULL,
     Reason          NVARCHAR(500) NOT NULL,
     Status          VARCHAR(20)   NOT NULL CONSTRAINT DF_LeaveRequests_Status DEFAULT ('PENDING'),
     ApproverId      INT           NULL,
@@ -262,19 +228,12 @@ CREATE TABLE dbo.LeaveRequests (
         OR (ApproverId IS NOT NULL AND DecidedAt IS NOT NULL)),
     CONSTRAINT CK_LeaveRequests_NoSelfApproval CHECK (ApproverId IS NULL OR ApproverId <> EmployeeId)
 );
--- Overlap check & "my requests" – seek on employee, range on dates
 CREATE INDEX IX_LeaveRequests_Employee_Dates ON dbo.LeaveRequests (EmployeeId, StartDate, EndDate)
     INCLUDE (Status, LeaveTypeId, TotalDays);
--- Approval queue only ever looks at PENDING rows – a small filtered index.
--- The filter column Status is INCLUDEd on purpose: without it the optimiser ignored
--- the index for COUNT/MIN queries (measured in docs/03-query-optimization.md, case 4).
 CREATE INDEX IX_LeaveRequests_Pending ON dbo.LeaveRequests (StartDate)
     INCLUDE (EmployeeId, LeaveTypeId, Status) WHERE Status = 'PENDING';
 CREATE INDEX IX_LeaveRequests_LeaveTypeId ON dbo.LeaveRequests (LeaveTypeId);
 
-/* -----------------------------------------------------------------------------
-   5. Payroll
-   ----------------------------------------------------------------------------- */
 CREATE TABLE dbo.PayrollSettings (
     SettingKey   VARCHAR(50)   NOT NULL CONSTRAINT PK_PayrollSettings PRIMARY KEY,
     SettingValue DECIMAL(18,4) NOT NULL,
@@ -286,7 +245,7 @@ CREATE TABLE dbo.PayrollSettings (
 CREATE TABLE dbo.TaxBrackets (
     BracketNo  TINYINT       NOT NULL CONSTRAINT PK_TaxBrackets PRIMARY KEY,
     LowerBound DECIMAL(18,2) NOT NULL,
-    UpperBound DECIMAL(18,2) NULL,      -- NULL = no upper limit
+    UpperBound DECIMAL(18,2) NULL,
     Rate       DECIMAL(5,4)  NOT NULL,
     CONSTRAINT CK_TaxBrackets_Bounds CHECK (LowerBound >= 0 AND (UpperBound IS NULL OR UpperBound > LowerBound)),
     CONSTRAINT CK_TaxBrackets_Rate   CHECK (Rate > 0 AND Rate < 1)
@@ -317,7 +276,7 @@ CREATE TABLE dbo.Payroll (
     PayrollId             BIGINT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Payroll PRIMARY KEY,
     PeriodId              INT           NOT NULL,
     EmployeeId            INT           NOT NULL,
-    DepartmentId          INT           NOT NULL,   -- snapshot at calculation time
+    DepartmentId          INT           NOT NULL,
     BaseSalary            DECIMAL(18,2) NOT NULL,
     Allowance             DECIMAL(18,2) NOT NULL,
     Dependents            TINYINT       NOT NULL,
@@ -326,7 +285,7 @@ CREATE TABLE dbo.Payroll (
     PaidLeaveDays         DECIMAL(4,1)  NOT NULL,
     PaidDays              DECIMAL(4,1)  NOT NULL,
     UnpaidDays            DECIMAL(4,1)  NOT NULL,
-    SalaryAmount          DECIMAL(18,2) NOT NULL,   -- base salary prorated by paid days
+    SalaryAmount          DECIMAL(18,2) NOT NULL,
     AllowanceAmount       DECIMAL(18,2) NOT NULL,
     GrossSalary           DECIMAL(18,2) NOT NULL,
     SocialInsurance       DECIMAL(18,2) NOT NULL,
@@ -353,9 +312,6 @@ CREATE TABLE dbo.Payroll (
 CREATE INDEX IX_Payroll_EmployeeId ON dbo.Payroll (EmployeeId) INCLUDE (PeriodId, GrossSalary, NetSalary);
 CREATE INDEX IX_Payroll_DepartmentId ON dbo.Payroll (DepartmentId);
 
-/* -----------------------------------------------------------------------------
-   6. Recruitment
-   ----------------------------------------------------------------------------- */
 CREATE TABLE dbo.JobPostings (
     JobPostingId   INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_JobPostings PRIMARY KEY,
     JobCode        VARCHAR(20)   NOT NULL CONSTRAINT UQ_JobPostings_JobCode UNIQUE,
@@ -431,9 +387,6 @@ CREATE TABLE dbo.CandidateStageHistory (
 );
 CREATE INDEX IX_CandidateStageHistory_Candidate ON dbo.CandidateStageHistory (CandidateId, ChangedAt);
 
-/* -----------------------------------------------------------------------------
-   7. Performance management
-   ----------------------------------------------------------------------------- */
 CREATE TABLE dbo.ReviewCycles (
     CycleId     INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_ReviewCycles PRIMARY KEY,
     CycleName   NVARCHAR(150) NOT NULL CONSTRAINT UQ_ReviewCycles_Name UNIQUE,
@@ -455,7 +408,7 @@ CREATE TABLE dbo.ReviewCriteria (
     CriteriaId   INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_ReviewCriteria PRIMARY KEY,
     CriteriaName NVARCHAR(150) NOT NULL CONSTRAINT UQ_ReviewCriteria_Name UNIQUE,
     Description  NVARCHAR(500) NULL,
-    Weight       DECIMAL(5,2)  NOT NULL,     -- percent; active criteria sum to 100
+    Weight       DECIMAL(5,2)  NOT NULL,
     DisplayOrder TINYINT       NOT NULL CONSTRAINT DF_ReviewCriteria_Order DEFAULT (0),
     IsActive     BIT           NOT NULL CONSTRAINT DF_ReviewCriteria_IsActive DEFAULT (1),
     CONSTRAINT CK_ReviewCriteria_Weight CHECK (Weight > 0 AND Weight <= 100)
@@ -504,9 +457,6 @@ CREATE TABLE dbo.ReviewScores (
 );
 CREATE INDEX IX_ReviewScores_CriteriaId ON dbo.ReviewScores (CriteriaId);
 
-/* -----------------------------------------------------------------------------
-   8. Audit log (written by the application for security-relevant actions)
-   ----------------------------------------------------------------------------- */
 CREATE TABLE dbo.AuditLogs (
     AuditId    BIGINT IDENTITY(1,1) NOT NULL CONSTRAINT PK_AuditLogs PRIMARY KEY,
     Username   VARCHAR(50)    NULL,

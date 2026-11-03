@@ -8,14 +8,6 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Minimal method + path router used inside each controller servlet, e.g.
- * <pre>{@code
- * r.get("/", this::list).get("/{id}", this::detail).post("/{id}/approve", this::approve);
- * }</pre>
- * Paths are relative to the servlet mapping ({@code request.getPathInfo()}); {@code {name}}
- * segments become path variables.
- */
 public final class Router {
 
     private static final Pattern VARIABLE = Pattern.compile("\\{([a-zA-Z][a-zA-Z0-9]*)}");
@@ -23,7 +15,6 @@ public final class Router {
     private record Route(String method, Pattern regex, List<String> variables, Handler handler) {
     }
 
-    /** A matched route with its extracted path variables. */
     public record Match(Handler handler, Map<String, String> pathVariables) {
     }
 
@@ -78,7 +69,6 @@ public final class Router {
         return Optional.empty();
     }
 
-    /** True when some route matches the path with another HTTP method (→ 405 instead of 404). */
     public boolean matchesOtherMethod(String path) {
         String normalized = normalize(path);
         return routes.stream().anyMatch(r -> r.regex().matcher(normalized).matches());

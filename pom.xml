@@ -16,18 +16,15 @@
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <!-- overwritten by jacoco:prepare-agent; empty default keeps surefire happy when JaCoCo is skipped -->
         <argLine/>
 
         <jackson.version>2.18.1</jackson.version>
         <junit.version>5.11.3</junit.version>
         <mockito.version>5.14.2</mockito.version>
-        <!-- minimum line coverage enforced on the service layer (requirement: >= 60%) -->
         <coverage.service.minimum>0.60</coverage.service.minimum>
     </properties>
 
     <dependencies>
-        <!-- Provided by Tomcat 10.1 (Jakarta EE 10) -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
@@ -41,7 +38,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- JSTL 3.0 (Tomcat does not ship JSTL) -->
         <dependency>
             <groupId>jakarta.servlet.jsp.jstl</groupId>
             <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
@@ -53,7 +49,6 @@
             <version>3.0.1</version>
         </dependency>
 
-        <!-- Database -->
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
@@ -65,7 +60,6 @@
             <version>5.1.0</version>
         </dependency>
 
-        <!-- Logging: SLF4J API + Logback; POI's Log4j API calls are bridged to SLF4J -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -82,7 +76,6 @@
             <version>2.24.1</version>
         </dependency>
 
-        <!-- JSON -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -94,14 +87,12 @@
             <version>${jackson.version}</version>
         </dependency>
 
-        <!-- Security -->
         <dependency>
             <groupId>org.mindrot</groupId>
             <artifactId>jbcrypt</artifactId>
             <version>0.4</version>
         </dependency>
 
-        <!-- Excel / CSV export & import -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
@@ -112,15 +103,12 @@
             <artifactId>commons-csv</artifactId>
             <version>1.12.0</version>
         </dependency>
-        <!-- Pinned: POI brings 2.16.1 (declared first, wins mediation) but commons-csv 1.12 needs 2.17
-             (UnsynchronizedBufferedReader) – see troubleshooting log. The enforcer rule below guards this. -->
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.17.0</version>
         </dependency>
 
-        <!-- Front-end libraries served from the WAR (no CDN needed at runtime) -->
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>bootstrap</artifactId>
@@ -142,7 +130,6 @@
             <version>4.4.1</version>
         </dependency>
 
-        <!-- Tests -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -172,7 +159,6 @@
     <build>
         <finalName>hrm</finalName>
         <plugins>
-            <!-- Fails the build when a library would run against an older transitive version than it was built for -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
@@ -219,7 +205,6 @@
                     <argLine>@{argLine} -Duser.timezone=Asia/Ho_Chi_Minh -Dfile.encoding=UTF-8</argLine>
                 </configuration>
             </plugin>
-            <!-- Integration tests (*IT.java) run in `verify`; they self-skip unless HRM_IT_DB_URL is set -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>

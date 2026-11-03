@@ -1,4 +1,3 @@
-/* Attendance records: search for HR/managers, manual entry & correction for HR (UC-22) */
 $(function () {
     'use strict';
     var canEdit = $('#attendancePage').data('can-edit') === true;

@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
-/** Leave request with employee, type and approver details. */
 public class LeaveRequest {
 
     private long leaveRequestId;

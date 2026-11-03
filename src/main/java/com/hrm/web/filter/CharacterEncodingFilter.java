@@ -8,11 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-/**
- * Decodes request parameters as UTF-8 (Vietnamese text). Responses declare their own charset
- * (JSP page directive, application/json;charset=UTF-8, text/csv;charset=UTF-8) so binary
- * downloads such as .xlsx are not given a meaningless charset parameter.
- */
 public class CharacterEncodingFilter extends HttpFilter {
 
     @Override

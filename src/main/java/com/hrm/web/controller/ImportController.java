@@ -13,10 +13,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
-/**
- * {@code /import}: upload page, CSV template download and the upload endpoint
- * (multipart, max 5 MB, registered with a MultipartConfigElement in AppBootstrap).
- */
 public class ImportController extends BaseController {
 
     private static final long serialVersionUID = 1L;
@@ -45,7 +41,7 @@ public class ImportController extends BaseController {
         Part part;
         try {
             part = ctx.request().getPart("file");
-        } catch (IllegalStateException e) {                  // multipart limits from AppBootstrap exceeded
+        } catch (IllegalStateException e) {
             throw new ValidationException("file", "File vượt quá dung lượng cho phép (5 MB).");
         }
         if (part == null || part.getSize() == 0) {

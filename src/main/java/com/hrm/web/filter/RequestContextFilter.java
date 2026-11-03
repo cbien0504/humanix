@@ -13,15 +13,6 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-/**
- * First filter of the chain:
- * <ul>
- *   <li>assigns a request id (re-uses a well-formed incoming {@code X-Request-Id}), exposes it in
- *       the MDC, as request attribute and as response header;</li>
- *   <li>writes one access-log line per dynamic request (method, path, status, duration);</li>
- *   <li>always clears the MDC and {@link UserContext} – threads are pooled by Tomcat.</li>
- * </ul>
- */
 public class RequestContextFilter extends HttpFilter {
 
     public static final String REQUEST_ID = "requestId";

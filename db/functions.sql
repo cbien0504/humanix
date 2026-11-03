@@ -1,20 +1,6 @@
-/* =============================================================================
-   HRM System – reusable functions
-   ============================================================================= */
 SET NOCOUNT ON;
 GO
 
-/* -----------------------------------------------------------------------------
-   fn_WorkingDays(@FromDate, @ToDate)
-   Inline table-valued function returning every working day in the closed range:
-   Monday–Friday and not a row in dbo.Holidays (business rule BR-13).
-   * Inline TVF (not a scalar UDF / multi-statement TVF) so the optimizer can
-     expand it into the calling query – no per-row function call overhead.
-   * Weekday test is independent of @@DATEFIRST / SET LANGUAGE:
-     1900-01-01 was a Monday, so DATEDIFF(DAY, '19000101', d) % 7 = 0..4 → Mon..Fri.
-   * Tally of up to 10,000 days (~27 years) built from stacked VALUES rows.
-   The Java class WorkingDayCalculator implements the same rule.
-   ----------------------------------------------------------------------------- */
 CREATE OR ALTER FUNCTION dbo.fn_WorkingDays (@FromDate DATE, @ToDate DATE)
 RETURNS TABLE
 AS

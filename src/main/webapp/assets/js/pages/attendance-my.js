@@ -1,8 +1,7 @@
-/* My attendance: server-synchronised clock, check-in/out, monthly summary (UC-20, UC-21) */
 $(function () {
     'use strict';
     var WEEKDAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-    var offsetMs = 0;           // server time − browser time
+    var offsetMs = 0;
     var $month = $('#month');
 
     function pad(n) {
@@ -15,7 +14,6 @@ $(function () {
     }
 
     function renderToday(t) {
-        // serverTime is a local date-time of the company time zone, e.g. 2026-11-02T08:15:03
         var p = t.serverTime.split(/[-T:]/);
         var server = new Date(+p[0], p[1] - 1, +p[2], +p[3], +p[4], +(p[5] || 0));
         offsetMs = server.getTime() - Date.now();

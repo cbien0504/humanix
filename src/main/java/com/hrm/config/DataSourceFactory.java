@@ -3,13 +3,6 @@ package com.hrm.config;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-/**
- * Builds the pooled {@link javax.sql.DataSource} (HikariCP) from {@code db.*} settings.
- * <p>
- * {@code initializationFailTimeout = -1} lets the application start even when SQL Server is
- * down: requests then fail fast with HTTP 503 and recover automatically once the database is
- * back, instead of the whole web application failing to deploy.
- */
 public final class DataSourceFactory {
 
     private DataSourceFactory() {

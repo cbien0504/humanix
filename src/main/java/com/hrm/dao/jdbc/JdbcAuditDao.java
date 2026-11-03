@@ -10,7 +10,6 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.List;
 
-/** JDBC implementation of {@link AuditDao}. Date filters are converted to the UTC range stored in the table. */
 public class JdbcAuditDao implements AuditDao {
 
     private final JdbcExecutor jdbc;

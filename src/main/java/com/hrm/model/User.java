@@ -7,7 +7,6 @@ import java.time.Instant;
 import java.util.EnumSet;
 import java.util.Set;
 
-/** Login account (table Users) with its roles and the linked employee's name. */
 public class User {
 
     private long userId;

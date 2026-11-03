@@ -10,10 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 
-/**
- * Records security-relevant actions in table AuditLogs and in audit.log. Auditing must never
- * break the business operation, so persistence failures are logged and swallowed.
- */
 public class AuditService {
 
     private static final Logger audit = LoggerFactory.getLogger("AUDIT");

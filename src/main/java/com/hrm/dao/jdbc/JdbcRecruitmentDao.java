@@ -44,7 +44,6 @@ public class JdbcRecruitmentDao implements RecruitmentDao {
             JOIN dbo.JobPostings AS jp ON jp.JobPostingId = ca.JobPostingId
             """;
 
-    /** Departments a manager runs or works in. */
     private static final String MANAGER_SCOPE = "(%s IN (SELECT DepartmentId FROM dbo.Departments WHERE ManagerId = ?) "
             + "OR %s = (SELECT DepartmentId FROM dbo.Employees WHERE EmployeeId = ?))";
 

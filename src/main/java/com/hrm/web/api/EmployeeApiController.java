@@ -11,19 +11,6 @@ import com.hrm.web.WebContext;
 import java.io.IOException;
 import java.util.Map;
 
-/**
- * REST resource {@code /api/employees} – used by the web UI (session + CSRF) and by external
- * systems (X-API-Key). See docs/api.md.
- * <pre>
- * GET    /api/employees?keyword=&departmentId=&positionId=&status=&page=&size=&sort=&dir=
- * GET    /api/employees/{id}             GET /api/employees/by-code/{code}
- * GET    /api/employees/{id}/salary-history
- * GET    /api/employees/options          GET /api/employees/next-code
- * POST   /api/employees                  → 201 + Location
- * PUT    /api/employees/{id}
- * DELETE /api/employees/{id}             → 204
- * </pre>
- */
 public class EmployeeApiController extends BaseController {
 
     private static final long serialVersionUID = 1L;

@@ -4,10 +4,6 @@ import com.hrm.dao.TransactionManager;
 
 import java.util.function.Supplier;
 
-/**
- * Pass-through {@link TransactionManager} for service tests. It records what a real one would
- * do: commit when the work returns, roll back when it throws.
- */
 public final class DirectTransactions implements TransactionManager {
 
     private int started;

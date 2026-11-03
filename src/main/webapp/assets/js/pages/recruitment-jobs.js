@@ -1,4 +1,3 @@
-/* Job postings (UC-40) */
 $(function () {
     'use strict';
     var canEdit = $('#jobsPage').data('can-edit') === true;

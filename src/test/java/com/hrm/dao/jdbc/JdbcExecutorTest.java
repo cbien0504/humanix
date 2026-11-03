@@ -44,7 +44,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-/** The JDBC template every DAO uses: binding, resource handling, audit user, transactions, error translation. */
 @ExtendWith(MockitoExtension.class)
 class JdbcExecutorTest {
 
@@ -88,14 +87,14 @@ class JdbcExecutorTest {
         verify(ps).setLong(3, 7L);
         verify(ps).setBigDecimal(4, new BigDecimal("1.50"));
         verify(ps).setBoolean(5, true);
-        verify(ps).setObject(6, LocalDateTime.of(2026, 11, 2, 1, 30));        // instants are stored as UTC DATETIME2
+        verify(ps).setObject(6, LocalDateTime.of(2026, 11, 2, 1, 30));
         verify(ps).setString(7, "ACTIVE");
         verify(ps).setObject(8, LocalDate.of(2026, 11, 2));
         verify(ps).setObject(9, null);
         verify(rs).close();
         verify(ps).close();
         verify(con).close();
-        verify(con, never()).prepareStatement(SET_APP_USER);                 // reads do not touch SESSION_CONTEXT
+        verify(con, never()).prepareStatement(SET_APP_USER);
     }
 
     @Test
@@ -134,7 +133,7 @@ class JdbcExecutorTest {
     @Test
     void storedProcedureRowCountsBeforeTheResultSetAreSkipped() throws SQLException {
         when(con.prepareCall("{call dbo.sp_CalculateMonthlyPayroll(?, ?, ?)}")).thenReturn(cs);
-        when(cs.execute()).thenReturn(false);              // "(36 rows affected)" from an INSERT inside the procedure
+        when(cs.execute()).thenReturn(false);
         when(cs.getUpdateCount()).thenReturn(36);
         when(cs.getMoreResults()).thenReturn(true);
         when(cs.getResultSet()).thenReturn(rs);
@@ -164,14 +163,14 @@ class JdbcExecutorTest {
             jdbc.inTransaction(() -> {
                 jdbc.update("UPDATE a");
                 jdbc.update("UPDATE a");
-                jdbc.inTransaction(() -> jdbc.update("UPDATE a"));      // nested call joins the outer transaction
+                jdbc.inTransaction(() -> jdbc.update("UPDATE a"));
             });
 
             verify(dataSource, times(1)).getConnection();
             verify(ps, times(3)).executeUpdate();
             InOrder order = inOrder(con, contextStatement);
             order.verify(con).setAutoCommit(false);
-            order.verify(contextStatement).execute();                  // audit user set once for the transaction
+            order.verify(contextStatement).execute();
             order.verify(con).commit();
             order.verify(con).setAutoCommit(true);
             order.verify(con).close();

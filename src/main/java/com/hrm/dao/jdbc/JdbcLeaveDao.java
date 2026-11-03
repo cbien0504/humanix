@@ -88,7 +88,6 @@ public class JdbcLeaveDao implements LeaveDao {
 
     @Override
     public List<LeaveRequest> findOverlapping(long employeeId, LocalDate start, LocalDate end) {
-        // seek on IX_LeaveRequests_Employee_Dates (EmployeeId, StartDate) – docs/03, case 3
         return jdbc.query(SELECT + " WHERE lr.EmployeeId = ? AND lr.StartDate <= ? AND lr.EndDate >= ? "
                 + "AND lr.Status IN ('PENDING', 'APPROVED') ORDER BY lr.StartDate", JdbcLeaveDao::map, employeeId, end, start);
     }
@@ -114,7 +113,6 @@ public class JdbcLeaveDao implements LeaveDao {
     public Page<LeaveRequest> search(LeaveFilter f, PageRequest page) {
         SqlWhere where = new SqlWhere()
                 .andContains(f.keyword(), "e.EmployeeCode", "e.FullName")
-                // the approval queue uses a literal so the filtered index IX_LeaveRequests_Pending can be chosen
                 .andIf(f.status() == LeaveStatus.PENDING, "lr.Status = 'PENDING'")
                 .andIf(f.status() != null && f.status() != LeaveStatus.PENDING, "lr.Status = ?",
                         f.status() == null ? null : f.status().name())

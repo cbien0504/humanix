@@ -19,10 +19,8 @@ public interface PayrollDao {
 
     Optional<PayrollPeriod> period(long periodId);
 
-    /** Runs sp_CalculateMonthlyPayroll and returns the period summary. */
     PayrollPeriod calculate(int year, int month, String calculatedBy);
 
-    /** Moves the period from {@code expected} to {@code target}; returns updated rows (optimistic). */
     int changeStatus(long periodId, PayrollStatus expected, PayrollStatus target, String username);
 
     Page<Payslip> payslips(long periodId, String keyword, Long departmentId, PageRequest page);
@@ -31,10 +29,8 @@ public interface PayrollDao {
 
     Optional<Payslip> payslip(long payrollId);
 
-    /** Payslips of approved/paid periods of one employee, newest first. */
     List<Payslip> payslipsOfEmployee(long employeeId);
 
-    /** Per-department totals of a period: department → [count, gross, net]. */
     List<Map<String, Object>> departmentTotals(long periodId);
 
     PayrollSettings settings();

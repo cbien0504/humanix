@@ -2,7 +2,6 @@ package com.hrm.model;
 
 import java.math.BigDecimal;
 
-/** Job title with level and salary band (table Positions). */
 public class Position {
 
     private long positionId;
@@ -15,7 +14,6 @@ public class Position {
     private boolean active = true;
     private int employeeCount;
 
-    /** BR-03: is the salary inside this position's band? */
     public boolean accepts(BigDecimal salary) {
         return salary != null && salary.compareTo(minSalary) >= 0 && salary.compareTo(maxSalary) <= 0;
     }

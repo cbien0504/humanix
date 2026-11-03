@@ -1,4 +1,3 @@
-/* Employee list & CRUD (UC-12 … UC-14). Permissions are re-checked by the server. */
 $(function () {
     'use strict';
     var canEdit = $('#employeePage').data('can-edit') === true;
@@ -48,7 +47,6 @@ $(function () {
         return;
     }
 
-    // ---------------------------------------------------------------- form helpers
     function loadManagers() {
         if (managersLoaded) {
             return $.Deferred().resolve().promise();
@@ -102,7 +100,6 @@ $(function () {
         HRM.get('/api/employees/' + id).done(open);
     }
 
-    // ---------------------------------------------------------------- actions
     $('#btnExport').on('click', function () {
         var params = HRM.form.toObject($('#filterForm'));
         $.each(params, function (k, v) {
@@ -155,7 +152,6 @@ $(function () {
             });
     });
 
-    // deep link from the profile page: /employees?edit=12
     if (HRM.qs('edit')) {
         edit(HRM.qs('edit'));
     }

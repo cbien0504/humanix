@@ -5,10 +5,6 @@ import com.hrm.service.ReportService;
 import com.hrm.web.BaseController;
 import com.hrm.web.Router;
 
-/**
- * {@code /api/reports}: GET /departments?asOf= · GET /attendance?from=&to=&departmentId=
- * and {@code /api/dashboard} (two instances of this servlet).
- */
 public class ReportApiController extends BaseController {
 
     private static final long serialVersionUID = 1L;

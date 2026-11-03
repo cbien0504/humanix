@@ -1,4 +1,3 @@
-/* My payslips and the gross→net simulator (UC-34, UC-35) */
 $(function () {
     'use strict';
     HRM.get('/api/payroll/my').done(function (list) {

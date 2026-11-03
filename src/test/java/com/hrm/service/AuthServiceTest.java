@@ -34,7 +34,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/** Login with lockout and timing-safe failures (UC-01), password change (UC-03). */
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
@@ -48,7 +47,7 @@ class AuthServiceTest {
     @Mock
     private AuditService audit;
 
-    private final Clock clock = Fixtures.clock();                 // 09:00 local
+    private final Clock clock = Fixtures.clock();
     private final Instant now = clock.instant();
     private AuthService service;
 
@@ -58,7 +57,6 @@ class AuthServiceTest {
         service = new AuthService(userDao, hasher, new PasswordPolicy(8), audit, clock, 5, 15);
     }
 
-    /** Logged-in principal of the account below (user id 7). */
     private static AuthUser principal() {
         return new AuthUser(7, "hr", 5L, "Lê Thị Lan", EnumSet.of(Role.HR, Role.EMPLOYEE));
     }
@@ -101,7 +99,7 @@ class AuthServiceTest {
             assertThatThrownBy(() -> service.login("ghost", "whatever1A"))
                     .isInstanceOf(UnauthorizedException.class)
                     .hasMessage(AuthService.BAD_CREDENTIALS);
-            verify(hasher).matches("whatever1A", DUMMY_HASH);        // same cost as a real check → no user enumeration
+            verify(hasher).matches("whatever1A", DUMMY_HASH);
         }
 
         @Test

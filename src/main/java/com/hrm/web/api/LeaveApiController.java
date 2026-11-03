@@ -13,15 +13,6 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Map;
 
-/**
- * REST resource {@code /api/leave-requests}.
- * <pre>
- * GET  /types · /balances?year= · /working-days?from=&to=
- * GET  /my?status=&year=           POST /            POST /{id}/cancel
- * GET  /approvals?status=&keyword= POST /{id}/approve POST /{id}/reject   ({"comment": "..."})
- * POST /balances/init?year=        (HR)
- * </pre>
- */
 public class LeaveApiController extends BaseController {
 
     private static final long serialVersionUID = 1L;
@@ -34,7 +25,6 @@ public class LeaveApiController extends BaseController {
         this.clock = clock;
     }
 
-    /** Body of approve/reject. */
     public record Decision(String comment) {
     }
 

@@ -5,7 +5,6 @@ import com.hrm.service.DataQualityService;
 import com.hrm.web.BaseController;
 import com.hrm.web.Router;
 
-/** {@code /api/admin/*} and audit log queries (ADMIN only). */
 public class AdminApiController extends BaseController {
 
     private static final long serialVersionUID = 1L;
