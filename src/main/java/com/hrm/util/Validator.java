@@ -5,6 +5,7 @@ import com.hrm.exception.ValidationException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -99,11 +100,11 @@ public final class Validator {
 
     public static String upper(String value) {
         String v = clean(value);
-        return v == null ? null : v.toUpperCase();
+        return v == null ? null : v.toUpperCase(Locale.ROOT);
     }
 
     public static String lower(String value) {
         String v = clean(value);
-        return v == null ? null : v.toLowerCase();
+        return v == null ? null : v.toLowerCase(Locale.ROOT);
     }
 }

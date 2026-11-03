@@ -23,6 +23,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
@@ -125,7 +126,7 @@ public class LeaveService {
         if (type.requiresBalance()) {
             LeaveBalance balance = leaveDao.balances(employeeId, f.startDate().getYear()).stream()
                     .filter(b -> b.leaveTypeId() == type.leaveTypeId()).findFirst()
-                    .orElseThrow(() -> new BusinessException("Chưa có số dư " + type.leaveTypeName().toLowerCase()
+                    .orElseThrow(() -> new BusinessException("Chưa có số dư " + type.leaveTypeName().toLowerCase(Locale.ROOT)
                             + " năm " + f.startDate().getYear() + ". Vui lòng liên hệ phòng Nhân sự."));
             if (balance.getAvailableDays().compareTo(totalDays) < 0) {
                 throw new BusinessException("Không đủ số ngày phép: còn " + balance.getAvailableDays().stripTrailingZeros().toPlainString()

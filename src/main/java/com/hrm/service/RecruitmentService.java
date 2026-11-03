@@ -29,6 +29,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -266,7 +267,7 @@ public class RecruitmentService {
 
     private static JobPostingForm normalize(JobPostingForm f) {
         return new JobPostingForm(Validator.upper(f.jobCode()), Validator.clean(f.title()), f.departmentId(), f.positionId(),
-                f.openings() == null ? 1 : f.openings(), f.employmentType() == null ? "FULL_TIME" : f.employmentType().toUpperCase(),
+                f.openings() == null ? 1 : f.openings(), f.employmentType() == null ? "FULL_TIME" : f.employmentType().toUpperCase(Locale.ROOT),
                 Validator.clean(f.location()), f.salaryMin(), f.salaryMax(), Validator.clean(f.description()),
                 Validator.clean(f.requirements()), f.status() == null ? JobStatus.DRAFT : f.status(), f.openDate(), f.closeDate());
     }
@@ -297,7 +298,7 @@ public class RecruitmentService {
 
     private CandidateForm normalize(CandidateForm f) {
         return new CandidateForm(f.jobPostingId(), Validator.clean(f.fullName()), Validator.lower(f.email()),
-                Validator.clean(f.phone()), f.source() == null ? "WEBSITE" : f.source().toUpperCase(),
+                Validator.clean(f.phone()), f.source() == null ? "WEBSITE" : f.source().toUpperCase(Locale.ROOT),
                 Validator.clean(f.resumeUrl()), f.expectedSalary(), f.rating(), f.interviewAt(), Validator.clean(f.notes()),
                 f.appliedDate() == null ? LocalDate.now(clock) : f.appliedDate());
     }
