@@ -224,16 +224,25 @@ INSERT INTO @lr VALUES
 
 INSERT INTO dbo.LeaveRequests (EmployeeId, LeaveTypeId, StartDate, EndDate, TotalDays, Reason, Status,
                                ApproverId, DecidedAt, ApproverComment, CreatedAt)
+-- Submitted 5 days and decided 3 days before the leave starts – unless that is still in the future
+-- (the seed runs on any day): then the request was sent 1–3 days ago and decided since. Never in the future.
 SELECT e.EmployeeId, lt.LeaveTypeId, r.StartDate, r.EndDate, wd.Days, r.Reason, r.Status,
        a.EmployeeId,
-       CASE WHEN r.Status IN ('APPROVED', 'REJECTED') THEN DATEADD(HOUR, 2, CAST(DATEADD(DAY, -3, r.StartDate) AS DATETIME2(0))) END,
+       CASE WHEN r.Status IN ('APPROVED', 'REJECTED') THEN
+            CASE WHEN n.Decided < t.Now THEN n.Decided
+                 ELSE DATEADD(SECOND, DATEDIFF(SECOND, c.CreatedAt, t.Now) / 2, c.CreatedAt) END END,
        r.Comment,
-       CAST(DATEADD(DAY, -5, r.StartDate) AS DATETIME2(0))
+       c.CreatedAt
 FROM @lr AS r
 JOIN dbo.Employees  AS e  ON e.EmployeeCode   = r.Emp
 JOIN dbo.LeaveTypes AS lt ON lt.LeaveTypeCode = r.LeaveType
 LEFT JOIN dbo.Employees AS a ON a.EmployeeCode = r.Approver
 CROSS APPLY (SELECT CAST(COUNT(*) AS DECIMAL(5,1)) AS Days FROM dbo.fn_WorkingDays(r.StartDate, r.EndDate)) AS wd
+CROSS APPLY (SELECT CAST(SYSUTCDATETIME() AS DATETIME2(0)) AS Now, ABS(CHECKSUM(r.Emp, r.StartDate)) AS H) AS t
+CROSS APPLY (SELECT DATEADD(DAY, -5, CAST(r.StartDate AS DATETIME2(0)))                AS Created,
+                    DATEADD(HOUR, 2, DATEADD(DAY, -3, CAST(r.StartDate AS DATETIME2(0)))) AS Decided) AS n
+CROSS APPLY (SELECT CASE WHEN n.Created < t.Now THEN n.Created
+                         ELSE DATEADD(HOUR, -(26 + t.H % 48), t.Now) END AS CreatedAt) AS c
 WHERE wd.Days > 0;
 GO
 
