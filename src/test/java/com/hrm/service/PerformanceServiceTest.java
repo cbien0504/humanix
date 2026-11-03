@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class PerformanceServiceTest {
 
-    /** Weights 30 / 30 / 20 / 20 – the seeded criteria. */
+    /** Four criteria weighted 30 / 30 / 20 / 20 (the seed has five, 30/25/20/15/10 – the rule is the same). */
     private static final List<ReviewCriterion> CRITERIA = List.of(
             new ReviewCriterion(1, "Kết quả công việc", null, BigDecimal.valueOf(30)),
             new ReviewCriterion(2, "Chuyên môn", null, BigDecimal.valueOf(30)),
