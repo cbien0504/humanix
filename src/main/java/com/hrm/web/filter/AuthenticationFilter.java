@@ -73,7 +73,10 @@ public class AuthenticationFilter extends HttpFilter {
 
         if (sessionUser == null) {
             if (WebContext.wantsJson(req)) {
-                resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+                // a browser whose session timed out still sends its cookie; an integration client sends nothing
+                resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, req.getRequestedSessionId() != null
+                        ? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+                        : "Chưa xác thực: đăng nhập hoặc gửi header X-API-Key.");
             } else {
                 String next = "GET".equals(req.getMethod()) ? path + (req.getQueryString() == null ? "" : "?" + req.getQueryString()) : "/";
                 resp.sendRedirect(req.getContextPath() + "/login?next=" + URLEncoder.encode(next, StandardCharsets.UTF_8));

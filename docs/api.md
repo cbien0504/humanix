@@ -77,7 +77,7 @@ Mọi lỗi – kể cả 401/403/404 do filter hay container sinh ra – có c�
 | HTTP | `error` | Khi nào | Client nên |
 |---|---|---|---|
 | 400 | `VALIDATION_FAILED` | dữ liệu sai; `fieldErrors` chỉ đúng trường – kể cả lỗi kiểu JSON: `"[0].workDate": "Trường \"[0].workDate\" không đúng định dạng (yyyy-MM-dd)."` | sửa dữ liệu, không gửi lại nguyên trạng |
-| 401 | `HTTP_401` | thiếu/sai API key, hết phiên | kiểm tra cấu hình key |
+| 401 | `HTTP_401` | không gửi gì: *"Chưa xác thực: đăng nhập hoặc gửi header X-API-Key."*; sai key: *"API key không hợp lệ."*; cookie phiên đã hết hạn | kiểm tra cấu hình key |
 | 403 | `HTTP_403` / `FORBIDDEN` | không có quyền với đường dẫn hoặc bản ghi | không thử lại |
 | 404 | `NOT_FOUND` | không có bản ghi | — |
 | 405 | `METHOD_NOT_ALLOWED` | sai phương thức HTTP | — |
