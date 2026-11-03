@@ -4,6 +4,8 @@ import com.hrm.exception.ValidationException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.poi.EmptyFileException;
+import org.apache.poi.openxml4j.exceptions.NotOfficeXmlFileException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -16,15 +18,16 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 /**
  * Reads a CSV (UTF-8, optional BOM, comma or semicolon) or Excel (.xlsx) file into rows of
@@ -65,19 +68,18 @@ public final class TabularFileReader {
     }
 
     static String normalizeHeader(String header) {
-        return header == null ? "" : header.replace("﻿", "").trim().toLowerCase(Locale.ROOT).replaceAll("[\\s-]+", "_");
+        return header == null ? "" : header.replace("\uFEFF", "").trim().toLowerCase(Locale.ROOT).replaceAll("[\\s-]+", "_");
     }
 
     private static List<DataRow> readCsv(InputStream in) throws IOException {
-        byte[] bytes = in.readAllBytes();
-        String text = new String(bytes, StandardCharsets.UTF_8);
+        String text = new String(in.readAllBytes(), StandardCharsets.UTF_8);
         String firstLine = text.lines().findFirst().orElse("");
         char delimiter = firstLine.chars().filter(c -> c == ';').count() > firstLine.chars().filter(c -> c == ',').count() ? ';' : ',';
         CSVFormat format = CSVFormat.DEFAULT.builder().setDelimiter(delimiter).setHeader().setSkipHeaderRecord(true)
                 .setIgnoreEmptyLines(true).setTrim(true).build();
+        int[] lineBreaks = lineBreaks(text);
         List<DataRow> rows = new ArrayList<>();
-        try (Reader reader = new InputStreamReader(new java.io.ByteArrayInputStream(bytes), StandardCharsets.UTF_8);
-             CSVParser parser = format.parse(reader)) {
+        try (CSVParser parser = format.parse(new StringReader(text))) {
             List<String> headers = parser.getHeaderNames().stream().map(TabularFileReader::normalizeHeader).toList();
             for (CSVRecord record : parser) {
                 if (rows.size() >= MAX_ROWS) {
@@ -87,12 +89,32 @@ public final class TabularFileReader {
                 for (int i = 0; i < headers.size() && i < record.size(); i++) {
                     values.put(headers.get(i), record.get(i));
                 }
-                rows.add(new DataRow((int) record.getRecordNumber() + 1, values));
+                rows.add(new DataRow(lineOf(text, lineBreaks, record.getCharacterPosition()), values));
             }
         } catch (IllegalArgumentException | IllegalStateException e) {
             throw new ValidationException("file", "File CSV không đúng định dạng: " + e.getMessage());
         }
         return rows;
+    }
+
+    /** Positions of every line feed, to turn a record's character position into its line number. */
+    private static int[] lineBreaks(String text) {
+        return IntStream.range(0, text.length()).filter(i -> text.charAt(i) == '\n').toArray();
+    }
+
+    /**
+     * 1-based line on which a record starts. The record counter of the parser is not a line number:
+     * a quoted value spanning lines or a skipped blank line would shift every later error report.
+     * The parser reports the position right after the previous record, so skipped blank lines are
+     * stepped over first.
+     */
+    private static int lineOf(String text, int[] lineBreaks, long characterPosition) {
+        int position = (int) characterPosition;
+        while (position < text.length() && (text.charAt(position) == '\n' || text.charAt(position) == '\r')) {
+            position++;
+        }
+        int i = Arrays.binarySearch(lineBreaks, position);
+        return (i >= 0 ? i : -i - 1) + 1;
     }
 
     private static List<DataRow> readExcel(InputStream in) throws IOException {
@@ -131,7 +153,7 @@ public final class TabularFileReader {
                 }
                 rows.add(new DataRow(r + 1, values));
             }
-        } catch (org.apache.poi.EmptyFileException | org.apache.poi.openxml4j.exceptions.NotOfficeXmlFileException e) {
+        } catch (EmptyFileException | NotOfficeXmlFileException e) {
             throw new ValidationException("file", "File Excel không hợp lệ.");
         }
         return rows;
