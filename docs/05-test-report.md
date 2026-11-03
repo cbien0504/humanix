@@ -1,7 +1,7 @@
 # 05 – Báo cáo kiểm thử
 
 > JUnit 5.11 · Mockito 5.14 · AssertJ 3.26 · JaCoCo 0.8.12 · Maven Surefire/Failsafe 3.5.2 · SQL Server 2022
-> Chạy ngày 03/11/2026 trên commit của Bước 7. Kết quả: **331 unit test + 8 integration test – 0 lỗi**,
+> Chạy ngày 03/11/2026 (cập nhật sau Bước 8). Kết quả: **333 unit test + 8 integration test – 0 lỗi**,
 > độ phủ dòng tầng service **94,9 %** (ngưỡng bắt buộc 60 %, build tự fail nếu thấp hơn).
 
 ## 1. Chiến lược
@@ -14,7 +14,7 @@
               │ Integration test (*IT, 8)            │  SQL Server thật qua DAO thật, mọi thay đổi
               │                                      │  được ROLLBACK – không làm bẩn dữ liệu
            ┌──┴──────────────────────────────────────┴──┐
-           │ Unit test DAO (30)                          │  JDBC giả lập: câu SQL, tham số bind,
+           │ Unit test DAO (32)                          │  JDBC giả lập: câu SQL, tham số bind,
            │                                             │  transaction, dịch lỗi SQL, mất kết nối
         ┌──┴─────────────────────────────────────────────┴──┐
         │ Unit test service & tiện ích (301)                 │  quy tắc nghiệp vụ với DAO giả lập (Mockito),
@@ -34,7 +34,7 @@
 ## 2. Cách chạy
 
 ```bash
-./mvnw test                      # 331 unit test, báo cáo: target/surefire-reports
+./mvnw test                      # 333 unit test, báo cáo: target/surefire-reports
 ./mvnw verify                    # + integration test + cổng coverage JaCoCo (≥ 60 % dòng của com.hrm.service*)
 open target/site/jacoco/index.html
 
@@ -71,10 +71,10 @@ Không có `HRM_IT_DB_URL`, hai lớp `*IT` bị bỏ qua bằng `Assumptions.as
 | `PasswordAndTokenTest` | 5 | BCrypt có salt, hash hỏng không khớp, chính sách mật khẩu, so sánh CSRF |
 | `SqlErrorTranslatorTest` | 10 | 2627/2601/547/51xxx/1205/08xxx → 409/409/409/409/500/503 với thông báo thân thiện |
 | `SqlBuildersTest` | 6 | WHERE động, escape `% _ [`, ORDER BY chỉ cột trong whitelist, kẹp phân trang |
-| `JdbcExecutorTest` | 11 | bind từng kiểu dữ liệu, `SESSION_CONTEXT` trước khi ghi, transaction lồng nhau, rollback, đóng tài nguyên |
+| `JdbcExecutorTest` | 13 | bind từng kiểu dữ liệu, `SESSION_CONTEXT` trước khi ghi, transaction lồng nhau, rollback, đóng tài nguyên; log khi DB sập (Bước 8) |
 | `JdbcEmployeeDaoTest` | 2 | **SQL injection**: từ khóa và tham số sắp xếp độc hại không bao giờ nằm trong câu SQL |
-| `DatabaseOutageTest` | 1 | pool Hikari thật tới cổng đóng → **503 sau < 1 s**, không treo luồng Tomcat |
-| **Unit – tổng** | **331** | 0 failure · 0 error · 0 skipped |
+| `DatabaseOutageTest` | 1 | pool Hikari thật (timeout 500 ms trong test) tới cổng đóng → **503 sau < 1 s**, không treo luồng; ứng dụng thật dùng timeout 5 s |
+| **Unit – tổng** | **333** | 0 failure · 0 error · 0 skipped |
 | `PayrollProcedureParityIT` | 3 | `sp_CalculateMonthlyPayroll` và `PayrollCalculator` cho kết quả **giống hệt** từng phiếu, 10 khoản × ~35 người × tháng 8, 9, 10/2026 |
 | `DatabaseRulesIT` | 5 | CHECK lương âm, UNIQUE mã NV, trigger chồng lấn nghỉ phép (51001), trigger lịch sử lương ghi đúng người sửa, kỳ lương đã chi không tính lại (51103) |
 | **Integration – tổng** | **8** | chạy trên SQL Server 2022; dữ liệu sau test không đổi – đã đối chiếu số dòng và `CHECKSUM_AGG` của 6 bảng (Payroll, PayrollPeriods, Employees, SalaryHistory, LeaveRequests, LeaveBalances) trước/sau |
