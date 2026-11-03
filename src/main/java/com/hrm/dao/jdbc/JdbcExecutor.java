@@ -2,6 +2,7 @@ package com.hrm.dao.jdbc;
 
 import com.hrm.dao.TransactionManager;
 import com.hrm.exception.AppException;
+import com.hrm.exception.DatabaseUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -198,6 +199,7 @@ public class JdbcExecutor implements TransactionManager {
 
     private <T> T run(String sql, boolean write, ConnectionCallback<T> callback) {
         long start = System.nanoTime();
+        boolean noConnection = false;
         Connection tx = txConnection.get();
         try {
             if (tx != null) {
@@ -211,7 +213,12 @@ public class JdbcExecutor implements TransactionManager {
             }
         } catch (SQLException e) {
             RuntimeException translated = translator.translate(e, sql);
-            if (translated instanceof AppException app && app.getHttpStatus() >= 500) {
+            if (translated instanceof DatabaseUnavailableException) {
+                // an outage is reported once per request by ErrorHandler and once per state change by
+                // HealthController – logging it here too tripled the ERROR lines of every failed request
+                noConnection = true;
+                log.debug("No database connection for {}: {}", flatten(sql), e.getMessage());
+            } else if (translated instanceof AppException app && app.getHttpStatus() >= 500) {
                 log.error("SQL failed [{}] {}: {}", e.getErrorCode(), flatten(sql), e.getMessage());
             } else {
                 log.debug("SQL rejected [{}] {}: {}", e.getErrorCode(), flatten(sql), e.getMessage());
@@ -219,7 +226,7 @@ public class JdbcExecutor implements TransactionManager {
             throw translated;
         } finally {
             long ms = (System.nanoTime() - start) / 1_000_000;
-            if (ms >= slowQueryMs) {
+            if (ms >= slowQueryMs && !noConnection) {           // waiting for the pool is not a slow query
                 log.warn("Slow SQL ({} ms): {}", ms, flatten(sql));
             } else if (log.isDebugEnabled()) {
                 log.debug("SQL ({} ms): {}", ms, flatten(sql));

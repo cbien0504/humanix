@@ -5,24 +5,31 @@ import com.hrm.exception.AppException;
 import com.hrm.web.BaseController;
 import com.hrm.web.Router;
 import com.hrm.web.WebContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * {@code GET /health} – liveness/readiness probe for Docker, load balancers and monitoring.
- * Returns 200 when the database answers, 503 otherwise (never throws).
+ * Returns 200 when the database answers, 503 otherwise (never throws). Probes run every few
+ * seconds, so only a change of state is logged: one ERROR when the database goes away, one INFO
+ * when it is back.
  */
 public class HealthController extends BaseController {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger log = LoggerFactory.getLogger(HealthController.class);
 
     private final transient JdbcExecutor jdbc;
     private final transient Clock clock;
     private final String version;
+    private final AtomicBoolean databaseUp = new AtomicBoolean(true);
 
     public HealthController(JdbcExecutor jdbc, Clock clock, String version) {
         this.jdbc = jdbc;
@@ -38,6 +45,7 @@ public class HealthController extends BaseController {
     private void health(WebContext ctx) throws IOException {
         Map<String, Object> db = new LinkedHashMap<>();
         boolean up;
+        String cause = null;
         long start = System.nanoTime();
         try {
             jdbc.queryScalar("SELECT 1", Integer.class);
@@ -45,6 +53,14 @@ public class HealthController extends BaseController {
         } catch (AppException e) {
             up = false;
             db.put("error", e.getMessage());
+            cause = rootMessage(e);
+        }
+        if (databaseUp.getAndSet(up) != up) {
+            if (up) {
+                log.info("Database reachable again");
+            } else {
+                log.error("Database unreachable: {}", cause);
+            }
         }
         db.put("status", up ? "UP" : "DOWN");
         db.put("latencyMs", (System.nanoTime() - start) / 1_000_000);
@@ -55,5 +71,13 @@ public class HealthController extends BaseController {
         body.put("time", Instant.now(clock));
         body.put("database", db);
         ctx.json(up ? 200 : 503, body);
+    }
+
+    private static String rootMessage(Throwable e) {
+        Throwable root = e;
+        while (root.getCause() != null && root.getCause() != root) {
+            root = root.getCause();
+        }
+        return root.getClass().getSimpleName() + ": " + root.getMessage();
     }
 }

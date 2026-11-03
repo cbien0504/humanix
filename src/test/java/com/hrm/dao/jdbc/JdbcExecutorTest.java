@@ -1,10 +1,15 @@
 package com.hrm.dao.jdbc;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.hrm.exception.BusinessException;
 import com.hrm.exception.DataAccessException;
 import com.hrm.exception.DataIntegrityException;
 import com.hrm.exception.DatabaseUnavailableException;
 import com.hrm.model.EmployeeStatus;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -12,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -220,6 +226,44 @@ class JdbcExecutorTest {
             when(rs.getObject(1)).thenReturn(36);
 
             assertThat(jdbc.count("SELECT COUNT(*) FROM dbo.Employees")).isEqualTo(36L);
+        }
+    }
+
+    @Nested
+    class Logging {
+
+        private final ListAppender<ILoggingEvent> events = new ListAppender<>();
+        private final Logger logger = (Logger) LoggerFactory.getLogger(JdbcExecutor.class);
+        private JdbcExecutor everythingIsSlow;
+
+        @BeforeEach
+        void attach() {
+            events.start();
+            logger.addAppender(events);
+            everythingIsSlow = new JdbcExecutor(dataSource, () -> "hr", 0);
+        }
+
+        @AfterEach
+        void detach() {
+            logger.detachAppender(events);
+        }
+
+        @Test
+        void slowStatementsAreWarned() throws SQLException {
+            when(con.prepareStatement("SELECT 1")).thenReturn(ps);
+            when(ps.executeQuery()).thenReturn(rs);
+
+            everythingIsSlow.query("SELECT 1", r -> 1);
+
+            assertThat(events.list).extracting(ILoggingEvent::getFormattedMessage).anyMatch(m -> m.startsWith("Slow SQL"));
+        }
+
+        @Test
+        void waitingForAnUnavailableDatabaseIsNeitherAnErrorNorASlowQueryAtThisLevel() throws SQLException {
+            when(dataSource.getConnection()).thenThrow(new SQLTransientConnectionException("request timed out after 5000ms"));
+
+            assertThatThrownBy(() -> everythingIsSlow.count("SELECT 1")).isInstanceOf(DatabaseUnavailableException.class);
+            assertThat(events.list).noneMatch(e -> e.getLevel().isGreaterOrEqual(Level.WARN));
         }
     }
 }
