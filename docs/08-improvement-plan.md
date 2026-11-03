@@ -19,7 +19,7 @@
 | H9 | Ngày lễ chỉ nhập bằng SQL/seed, **chưa có màn hình quản lý** | không có view/controller cho `Holidays` | mỗi năm phải nhờ IT chạy script |
 | H10 | Chưa có **thông báo** (email/in-app) cho đơn chờ duyệt, phiếu lương mới, hạn đánh giá | — | người dùng phải tự vào kiểm tra |
 | H11 | CV ứng viên chỉ lưu **đường dẫn** (http/https), chưa lưu file | `RecruitmentService` | phụ thuộc nơi lưu bên ngoài |
-| H12 | Workflow CI **chưa chạy trên GitHub** (repo chưa có remote); các bước đã được chạy lại thủ công tương đương | `.github/workflows/ci.yml`, `README` | cần một lần chạy thật để xác nhận runner/cache |
+| H12 | Workflow CI mới được kiểm chứng bằng cách **chạy lại thủ công các bước tương đương** (build image, `docker compose`, `./mvnw verify` kèm integration test trên DB mới khởi tạo) | `.github/workflows/ci.yml`, `05-test-report.md` | cần theo dõi lần chạy đầu trên GitHub Actions (runner, cache Maven/Docker, thời gian khởi động SQL Server) |
 
 ## 2. Lộ trình đề xuất
 
